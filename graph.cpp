@@ -288,13 +288,14 @@ void GRAPH::LoadBitmap ( SPRITE* spr, const char* szBitmap )
             printf ( "Unable to create texture from %s! SDL Error: %s\n", szBitmap, SDL_GetError () );
         }
 
+        spr->bmp = newTexture;
+        spr->sx = loadedSurface->w;
+        spr->sy = loadedSurface->h;
+
         //Get rid of old loaded surface
         SDL_FreeSurface ( loadedSurface );
     }
 
-    spr->bmp = newTexture;
-    spr->sx = loadedSurface->w;
-    spr->sy = loadedSurface->h;
 }
 
 

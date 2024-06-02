@@ -1,6 +1,10 @@
 #include "pang.h"
 #include "app.h"
 
+#include <stdio.h>
+#include <iostream>
+
+
 int WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR, int );
 LRESULT CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 BOOL FAR PASCAL DIALOG1MsgProc(HWND hWndDlg, WORD Message, WORD wParam, LONG lParam);
@@ -33,14 +37,23 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 				    LPSTR lpCmdLine, int nCmdShow )
 {
 	MSG msg;                                // estructura de mensaje
+	
+	AllocConsole ();
+	FILE* fDummy;
+	freopen_s ( &fDummy, "CONOUT$", "w", stdout );
+	freopen_s ( &fDummy, "CONOUT$", "w", stderr );
+	freopen_s ( &fDummy, "CONIN$", "r", stdin );
+
+	printf ( "Initializing....\n" );
 	screen = new PMENU;
+
 
 	hInst = hInstance;
 	if (!Window_Create(hInstance, nCmdShow)) return FALSE;
 	
 	gameinf.Init();
 	screen->Init();  /*###### INICIO DEL JUEGO ######*/
- 
+	system ( "pause" );
   // etc... 
  while (!quit)
  {
