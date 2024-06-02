@@ -70,53 +70,53 @@ int PSCENE::InitBitmaps()
 	int offs1[10] = {0, 13, 18, 31, 44, 58, 70, 82, 93, 105 };
 	int offs2[10] = {0, 49, 86, 134, 187, 233, 277, 327, 374, 421 };
 
-	bmp.redball[0].Init(&graph, "graph\\ball-rd1.bmp");
-	bmp.redball[1].Init(&graph, "graph\\ball-rd2.bmp");
-	bmp.redball[2].Init(&graph, "graph\\ball-rd3.bmp");
-	bmp.redball[3].Init(&graph, "graph\\ball-rd4.bmp");
+	bmp.redball[0].Init(&graph, "graph\\ball-rd1.png");
+	bmp.redball[1].Init(&graph, "graph\\ball-rd2.png");
+	bmp.redball[2].Init(&graph, "graph\\ball-rd3.png");
+	bmp.redball[3].Init(&graph, "graph\\ball-rd4.png");
 	for(i=0;i<4;i++)
 		graph.SetColorKey(bmp.redball[i].bmp, RGB(0,255,0));
 
 
 
 
-	bmp.miniplayer[PLAYER1].Init(&graph, "graph\\miniplayer1.bmp");
-	bmp.miniplayer[PLAYER2].Init(&graph, "graph\\miniplayer2.bmp");
+	bmp.miniplayer[PLAYER1].Init(&graph, "graph\\miniplayer1.png");
+	bmp.miniplayer[PLAYER2].Init(&graph, "graph\\miniplayer2.png");
 	graph.SetColorKey(bmp.miniplayer[PLAYER1].bmp, RGB(0,255,0));
 	graph.SetColorKey(bmp.miniplayer[PLAYER2].bmp, RGB(0,255,0));
 
-	bmp.lives[PLAYER1].Init(&graph, "graph\\lives1p.bmp");
-	bmp.lives[PLAYER2].Init(&graph, "graph\\lives2p.bmp");
+	bmp.lives[PLAYER1].Init(&graph, "graph\\lives1p.png");
+	bmp.lives[PLAYER2].Init(&graph, "graph\\lives2p.png");
 	graph.SetColorKey(bmp.lives[PLAYER1].bmp, RGB(0,255,0));
 	graph.SetColorKey(bmp.lives[PLAYER2].bmp, RGB(0,255,0));
 
-	bmp.shoot[0].Init(&graph,"graph\\weapon1.bmp");	
-	bmp.shoot[1].Init(&graph,"graph\\weapon2.bmp");
-	bmp.shoot[2].Init(&graph,"graph\\weapon3.bmp");
+	bmp.shoot[0].Init(&graph,"graph\\weapon1.png");	
+	bmp.shoot[1].Init(&graph,"graph\\weapon2.png");
+	bmp.shoot[2].Init(&graph,"graph\\weapon3.png");
 	for(i=0; i<3;i++)
 		graph.SetColorKey(bmp.shoot[i].bmp, RGB(0,255,0));
 
-	bmp.mark[0].Init(&graph, "graph\\ladrill1.bmp");
-	bmp.mark[1].Init(&graph, "graph\\ladrill1u.bmp");
-	bmp.mark[2].Init(&graph, "graph\\ladrill1d.bmp");
-	bmp.mark[3].Init(&graph, "graph\\ladrill1l.bmp");
-	bmp.mark[4].Init(&graph, "graph\\ladrill1r.bmp");
+	bmp.mark[0].Init(&graph, "graph\\ladrill1.png");
+	bmp.mark[1].Init(&graph, "graph\\ladrill1u.png");
+	bmp.mark[2].Init(&graph, "graph\\ladrill1d.png");
+	bmp.mark[3].Init(&graph, "graph\\ladrill1l.png");
+	bmp.mark[4].Init(&graph, "graph\\ladrill1r.png");
 
 	for(i=0; i<5;i++)
 		graph.SetColorKey(bmp.mark[i].bmp, RGB(0,255,0));
 
-	bmp.floor[0].Init(&graph, "graph\\floor1.bmp");
+	bmp.floor[0].Init(&graph, "graph\\floor1.png");
 	graph.SetColorKey(bmp.floor[0].bmp, RGB(0,255,0));
-	bmp.floor[1].Init(&graph, "graph\\floor2.bmp");
+	bmp.floor[1].Init(&graph, "graph\\floor2.png");
 	graph.SetColorKey(bmp.floor[1].bmp, RGB(0,255,0));
 
-	bmp.time.Init(&graph, "graph\\tiempo.bmp");
+	bmp.time.Init(&graph, "graph\\tiempo.png");
 	graph.SetColorKey(bmp.time.bmp, RGB(255,0,0));
 
-	bmp.gameover.Init(&graph, "graph\\gameover.bmp", 16, 16);
+	bmp.gameover.Init(&graph, "graph\\gameover.png", 16, 16);
 	graph.SetColorKey(bmp.gameover.bmp, RGB(0,255,0));
 
-	bmp.continu.Init(&graph, "graph\\continue.bmp", 16, 16);
+	bmp.continu.Init(&graph, "graph\\continue.png", 16, 16);
 	graph.SetColorKey(bmp.continu.bmp, RGB(0,255,0));
 
 	strcpy(cadena, "graph\\");
@@ -125,15 +125,15 @@ int PSCENE::InitBitmaps()
 	graph.SetColorKey(bmp.back.bmp, RGB(0,255,0));
 
 	/* inicio de las fuentes numericas */
-	bmp.fontnum[0].Init(&graph, "graph\\fontnum1.bmp", 0, 0);
+	bmp.fontnum[0].Init(&graph, "graph\\fontnum1.png", 0, 0);
 	graph.SetColorKey(bmp.fontnum[0].bmp, RGB(255,0,0));
 	fontnum[0].Init(&bmp.fontnum[0]);
 	fontnum[0].SetValues(offs);
-	bmp.fontnum[1].Init(&graph, "graph\\fontnum2.bmp", 0, 0);
+	bmp.fontnum[1].Init(&graph, "graph\\fontnum2.png", 0, 0);
 	graph.SetColorKey(bmp.fontnum[1].bmp, RGB(255,0,0));
 	fontnum[1].Init(&bmp.fontnum[1]);
 	fontnum[1].SetValues(offs1);
-	bmp.fontnum[2].Init(&graph, "graph\\fontnum3.bmp", 0, 0);
+	bmp.fontnum[2].Init(&graph, "graph\\fontnum3.png", 0, 0);
 	graph.SetColorKey(bmp.fontnum[2].bmp, RGB(0,255,0));
 	fontnum[2].Init(&bmp.fontnum[2]);
 	fontnum[2].SetValues(offs2);

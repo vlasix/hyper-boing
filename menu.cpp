@@ -5,11 +5,11 @@
 
 int PMENU::InitBitmaps()
 {
-	bmp.title.Init(&graph, "graph\\title.bmp", 0, 0);
+	bmp.title.Init(&graph, "graph\\title.png", 0, 0);
 	graph.SetColorKey(bmp.title.bmp, RGB(0,255,0));
-	bmp.back.Init(&graph, "graph\\titleback.bmp", 0, 0);
+	bmp.back.Init(&graph, "graph\\titleback.png", 0, 0);
 	graph.SetColorKey(bmp.back.bmp, RGB(255,0,0));
-	bmp.pulsa.Init(&graph, "graph\\pulsatecla.bmp", 0, 0);
+	bmp.pulsa.Init(&graph, "graph\\pulsatecla.png", 0, 0);
 	graph.SetColorKey(bmp.pulsa.bmp, RGB(255,0,0));
 
 	return 1;

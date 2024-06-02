@@ -16,11 +16,11 @@ PSTAGECLEAR::~PSTAGECLEAR()
 int PSTAGECLEAR::Init()
 {
 	
-	bmp.title1.Init(&graph, "graph\\nivel.bmp", 0, 0);
+	bmp.title1.Init(&graph, "graph\\nivel.png", 0, 0);
 	graph.SetColorKey(bmp.title1.bmp, RGB(0,255,0));
-	bmp.title2.Init(&graph, "graph\\completado.bmp", 0, 0);
+	bmp.title2.Init(&graph, "graph\\completado.png", 0, 0);
 	graph.SetColorKey(bmp.title2.bmp, RGB(0,255,0));
-	bmp.roof.Init(&graph, "graph\\ladrill4.bmp", 0, 0);
+	bmp.roof.Init(&graph, "graph\\ladrill4.png", 0, 0);
 	graph.SetColorKey(bmp.roof.bmp, RGB(0,255,0));
 
 	xt1 = - bmp.title1.sx;

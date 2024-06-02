@@ -2,20 +2,20 @@
 
 int PSELECT::InitBitmaps()
 {
-	bmp.back.Init(&graph, "graph\\titleback.bmp", 0, 0);
+	bmp.back.Init(&graph, "graph\\titleback.png", 0, 0);
 	graph.SetColorKey(bmp.back.bmp, RGB(255,0,0));
 
-	bmp.mode.Init(&graph, "graph\\selecmodo.bmp", 0, 0);
+	bmp.mode.Init(&graph, "graph\\selecmodo.png", 0, 0);
 	graph.SetColorKey(bmp.mode.bmp, RGB(255,0,0));
 	
-	bmp.seltext[PLAYER1].Init(&graph, "graph\\select1ptext.bmp", 0, 0);
+	bmp.seltext[PLAYER1].Init(&graph, "graph\\select1ptext.png", 0, 0);
 	graph.SetColorKey(bmp.seltext[PLAYER1].bmp, RGB(0,0,255));
-	bmp.seltext[PLAYER2].Init(&graph, "graph\\select2ptext.bmp", 0, 0);
+	bmp.seltext[PLAYER2].Init(&graph, "graph\\select2ptext.png", 0, 0);
 	graph.SetColorKey(bmp.seltext[PLAYER2].bmp, RGB(0,0,255));
 
-	bmp.select[PLAYER1].Init(&graph, "graph\\select1p.bmp", 0, 0);
+	bmp.select[PLAYER1].Init(&graph, "graph\\select1p.png", 0, 0);
 	graph.SetColorKey(bmp.select[PLAYER1].bmp, RGB(0,255,0));
-	bmp.select[PLAYER2].Init(&graph, "graph\\select2p.bmp", 0, 0);
+	bmp.select[PLAYER2].Init(&graph, "graph\\select2p.png", 0, 0);
 	graph.SetColorKey(bmp.select[PLAYER2].bmp, RGB(150,150,150));
 
 	return 1;
