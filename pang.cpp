@@ -221,7 +221,7 @@ int Window_Create(HINSTANCE hInstance, int nCmdShow)
 		return FALSE;
 	}
 	else
-	if (!graph.Init(hWndMain, globalmode))
+	if (!graph.Init("Window Title", globalmode))
 	{
 		MessageBox(hWndMain, "Error iniciando Direct Draw \n ¿tienes instaladas las DirectX version 7?",0,0);;
 		return FALSE;
@@ -522,8 +522,8 @@ void PGAMEINFO::Release()
 
 	for(i=0;i<14;i++)
 	{
-		bmp.player[PLAYER1][i].bmp->Release();
-		bmp.player[PLAYER2][i].bmp->Release();
+		bmp.player[PLAYER1][i].Release();
+		bmp.player[PLAYER2][i].Release();
 	}
 }
 //=== Funciones MCI de sonido ======================================

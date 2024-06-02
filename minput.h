@@ -3,7 +3,7 @@
 
 #include <SDL.h>
 
-#define KEYDOWN(name,key) (name[key] & 0x80)  
+//#define KEYDOWN(name,key) (name[key] & 0x80)  
 
 
 

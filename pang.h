@@ -4,6 +4,10 @@
 #include <windows.h>
 #include <process.h>
 #include <ddraw.h>
+
+#include <SDL.h>
+#include <SDL_image.h>
+
 #include "app.h"
 #include "resource.h"
 #include "graph.h"

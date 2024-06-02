@@ -2,7 +2,9 @@
 #include <stdio.h>
 //#include "sprite.h"
 #include "pang.h"
-
+#include <SDL.h>
+#include <SDL_render.h>
+#include <SDL_image.h>
 
 
 
@@ -714,26 +716,26 @@ int PSCENE::Release()
 	lsshoots.Release();
 	lsfloor.Release();
 
-	bmp.back.bmp->Release();
-	bmp.floor[0].bmp->Release();
-	bmp.floor[1].bmp->Release();
-	bmp.fontnum[0].bmp->Release();
-	bmp.fontnum[1].bmp->Release();
-	bmp.miniplayer[PLAYER1].bmp->Release();
-	bmp.miniplayer[PLAYER2].bmp->Release();
-	bmp.lives[PLAYER1].bmp->Release();
-	bmp.lives[PLAYER2].bmp->Release();
-	bmp.time.bmp->Release();
-	bmp.gameover.bmp->Release();
-	bmp.continu.bmp->Release();
+	bmp.back.Release();
+	bmp.floor[0].Release();
+	bmp.floor[1].Release();
+	bmp.fontnum[0].Release();
+	bmp.fontnum[1].Release();
+	bmp.miniplayer[PLAYER1].Release();
+	bmp.miniplayer[PLAYER2].Release();
+	bmp.lives[PLAYER1].Release();
+	bmp.lives[PLAYER2].Release();
+	bmp.time.Release();
+	bmp.gameover.Release();
+	bmp.continu.Release();
 	
 
 	for(i=0;i<5;i++)		
-		bmp.mark[i].bmp->Release();
+		bmp.mark[i].Release();
 	for(i=0;i<4;i++)		
-		bmp.redball[i].bmp->Release();
+		bmp.redball[i].Release();
 	for(i=0;i<2;i++)
-		bmp.shoot[i].bmp->Release();
+		bmp.shoot[i].Release();
 	
 	CloseMusic();
 
@@ -845,10 +847,10 @@ int PSCENE::DrawAll()
 	HBRUSH hb;
 	char cadena[60];
 	
-	if(!graph.lpDD) return 0;
+	//if(!graph.lpDD) return 0;
 
 	DrawBackground();
-	graph.GetDC();
+	//graph.GetDC();
 	
 
 	/********* VARIABLES A MOSTRAR *********/
@@ -874,7 +876,7 @@ int PSCENE::DrawAll()
 	}	
 */
 	
-	graph.ReleaseDC();
+	//graph.ReleaseDC();
 	
 	pt = lsfloor.GetFirstNode();
 	while(pt)

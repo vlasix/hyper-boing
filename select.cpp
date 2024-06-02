@@ -48,12 +48,12 @@ int PSELECT::Init()
 
 int PSELECT::Release()
 {
-	bmp.select[PLAYER1].bmp->Release();
-	bmp.select[PLAYER2].bmp->Release();
-	bmp.seltext[PLAYER1].bmp->Release();
-	bmp.seltext[PLAYER2].bmp->Release();
-	bmp.mode.bmp->Release();
-	bmp.back.bmp->Release();
+	bmp.select[PLAYER1].Release();
+	bmp.select[PLAYER2].Release();
+	bmp.seltext[PLAYER1].Release();
+	bmp.seltext[PLAYER2].Release();
+	bmp.mode.Release();
+	bmp.back.Release();
 
 	CloseMusic();
 
@@ -62,17 +62,15 @@ int PSELECT::Release()
 
 void PSELECT::DrawSelect()
 {
-	int i, j;
-
-	graph.GetDC();
-	SelectObject(graph.hdc, GetStockObject(WHITE_BRUSH));
+	//graph.GetDC();
+	//SelectObject(graph.hdc, GetStockObject(WHITE_BRUSH));
 	if (option==0) 	
 		graph.Rectangle(65, 205, 70+bmp.select[PLAYER1].sx+5, 210 + bmp.select[PLAYER1].sy+5);
 	else
 		graph.Rectangle(330, 205, 335+bmp.select[PLAYER2].sx+5, 210 + bmp.select[PLAYER2].sy+5);
 
 
-	graph.ReleaseDC();
+	//graph.ReleaseDC();
 	graph.Draw(&bmp.mode, 38, 10);
 	graph.Draw(&bmp.select[PLAYER1], 70, 210);
 	graph.Draw(&bmp.seltext[PLAYER1], 70, 210+bmp.select[PLAYER1].sy + 10);

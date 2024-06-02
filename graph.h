@@ -1,7 +1,6 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
-//#include <windows.h>
 
 #define RENDERMODE_NORMAL 1
 #define RENDERMODE_EXCLUSIVE 2
@@ -27,12 +26,13 @@ class BMNUMFONT;
 class SPRITE
 {
 public:
-	LPDIRECTDRAWSURFACE7 bmp;
+	SDL_Texture* bmp;
 	int sx, sy;
 	int xoff, yoff; //desplazamiento relativo
 	GRAPH * graph;
 
 	void Init(GRAPH *gr, char file[], int offx=0, int offy=0);
+	void Release ( void );
 };
 
 
@@ -48,43 +48,38 @@ public:
 class GRAPH
 {
 public:	
-	HWND hwnd;
-	HDC hdc;
-	LPDIRECTDRAW7 lpDD ;
-	LPDIRECTDRAWSURFACE7 lpDDSPrimary ;
-	LPDIRECTDRAWSURFACE7 lpDDSBack ;
-	LPDIRECTDRAWCLIPPER lpClipper;       // clipper para primary
+	SDL_Window* window;
+	SDL_Renderer* renderer;
+	SDL_Texture* backBuffer;
 	int mode;
 
-	int Init(HWND _hwnd, int _mode);
-	int InitNormal();
-	int InitEx();
-	void GetDC();
-	void ReleaseDC();
+	int Init ( const char* title, int _mode );
+	int InitNormal ( const char* title );
+	int InitEx ( const char* title );
+	void Release ();
+
+
+	void Draw ( SPRITE* spr, int x, int y );
+	void Draw ( SDL_Texture* texture, RECT* srcRect, int x, int y );
+	void DrawClipped ( SDL_Texture* texture, RECT* srcRect, int x, int y );
+	void DrawClipped ( SPRITE* spr, int x, int y );
+	void Draw ( BMNUMFONT* font, int num, int x, int y );
+	void Draw ( BMNUMFONT* font, char cad[], int x, int y );
+	void DrawClipped ( BMNUMFONT* font, char cad[], int x, int y );
+
 	void Flip();
-	void Draw(LPDIRECTDRAWSURFACE7 lpdds, int x, int y);
-	void Draw(SPRITE *spr, int x, int y);
-	void Draw(LPDIRECTDRAWSURFACE7 lpdds, RECT *rc, int x, int y);
-	void DrawClipped(LPDIRECTDRAWSURFACE7 lpdds, RECT *rc, int x, int y);
-	void Draw(BMNUMFONT *numfont, int num, int x, int y);
-	void Draw(BMNUMFONT *font, char cad[], int x, int y);
-	void DrawClipped(BMNUMFONT *font, char cad[], int x, int y);
-	void DrawClipped(SPRITE *spr, int x, int y);
-	void Text(char texto[], int x, int y);
-	void Ellipse(int a, int b, int c, int d);
+
+	void Text(const char texto[], int x, int y);
 	void Rectangle(int a, int b, int c, int d);
-	void MoveTo(int x, int y);
-	void LineTo(int x, int y);
+	//void MoveTo(int x, int y);
+	//void LineTo(int x, int y);
 
-	HRESULT SetColorKey(IDirectDrawSurface7 * pdds, COLORREF rgb);
-	HRESULT CopyBitmap(IDirectDrawSurface7 * pdds, HBITMAP hbm, int x, int y, int dx, int dy);
-	IDirectDrawSurface7 * LoadBitmap(LPCSTR szBitmap, int dx, int dy);	
-	DWORD ColorMatch(IDirectDrawSurface7 * pdds, COLORREF rgb);
-	void LoadBitmap(SPRITE *spr, LPCSTR szBitmap);
-
-
-
-	void Release();
+	HRESULT CopyBitmap ( SDL_Texture* texture, SDL_Surface* surface, int x, int y, int dx, int dy );
+	void LoadBitmap ( SPRITE* spr, const char* szBitmap );
+	Uint32 ColorMatch ( SDL_Surface* surface, Uint32 rgb );
+	HRESULT SetColorKey ( SDL_Texture* texture, Uint32 rgb );
+	//HRESULT SetColorKey(IDirectDrawSurface7 * pdds, COLORREF rgb);
+	//DWORD ColorMatch(IDirectDrawSurface7 * pdds, COLORREF rgb);
 };
 
 #endif

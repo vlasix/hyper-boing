@@ -1,4 +1,6 @@
 #include "pang.h"
+#include <SDL.h>
+#include <SDL_image.h>
 #include <stdio.h>
 
 int PMENU::InitBitmaps()
@@ -43,9 +45,9 @@ int PMENU::Init()
 
 int PMENU::Release()
 {
-	bmp.title.bmp->Release();
-	bmp.back.bmp->Release();
-	bmp.pulsa.bmp->Release();
+	bmp.title.Release();
+	bmp.back.Release();
+	bmp.pulsa.Release();
 
 	CloseMusic();
 
@@ -107,17 +109,16 @@ int PMENU::DrawAll()
 		
 	
 	/******** Copyright *********/
-	graph.GetDC();
-	SetBkColor(graph.hdc, RGB(0,0, 0));
-	SetTextColor(graph.hdc, RGB(255,255,255));
-	SelectObject(graph.hdc, GetStockObject(WHITE_BRUSH));
-	SelectObject(graph.hdc, GetStockObject(WHITE_PEN));
+	// TODO: Re enable when text is working
+	//graph.GetDC();
+	//SetBkColor(graph.hdc, RGB(0,0, 0));
+	//SetTextColor(graph.hdc, RGB(255,255,255));
+	//SelectObject(graph.hdc, GetStockObject(WHITE_BRUSH));
+	//SelectObject(graph.hdc, GetStockObject(WHITE_PEN));
 
-	SetBkMode(graph.hdc, TRANSPARENT);		
-	//SetBkColor(graph.hdc, RGB(255,255, 255));
-	sprintf(cadena, "Chuper Pang © Miguel Martinez, 2001");
-	graph.Text(cadena, 100, RES_Y-20);			
-	graph.ReleaseDC();
+	//SetBkMode(graph.hdc, TRANSPARENT);		
+	//sprintf(cadena, "Chuper Pang © Miguel Martinez, 2001");
+	//graph.Text(cadena, 100, RES_Y-20);			
 
 	graph.Flip();
 	

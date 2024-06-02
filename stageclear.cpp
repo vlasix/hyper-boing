@@ -227,8 +227,8 @@ int PSTAGECLEAR::MoveAll()
 
 int PSTAGECLEAR::Release()
 {
-	bmp.title1.bmp->Release();
-	bmp.title2.bmp->Release();
+	bmp.title1.Release();
+	bmp.title2.Release();
 
 		return 1;
 }

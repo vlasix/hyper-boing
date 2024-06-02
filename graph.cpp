@@ -1,494 +1,340 @@
 #include <stdio.h>
+#include <iostream>
 #include "pang.h"
-#include "wingdi.h"
+//#include "wingdi.h"
 
-
-void GRAPH::GetDC()
-{
-	lpDDSBack->GetDC(&hdc);
+SDL_Rect toSDLRect ( const RECT& rect ) {
+    SDL_Rect sdlRect;
+    sdlRect.x = rect.left;
+    sdlRect.y = rect.top;
+    sdlRect.w = rect.right - rect.left;
+    sdlRect.h = rect.bottom - rect.top;
+    return sdlRect;
 }
 
-void GRAPH::ReleaseDC()
-{
-	lpDDSBack->ReleaseDC(hdc);
+// Main Initialization Function
+int GRAPH::Init ( const char* title, int _mode ) {
+    mode = _mode;
+
+    if ( mode == RENDERMODE_NORMAL )
+        return InitNormal ( title );
+    else
+        return InitEx ( title );
 }
 
-int GRAPH::Init(HWND _hwnd, int _mode)
-{
-	mode = _mode;
-	hwnd = _hwnd;
+// Normal Windowed Mode Initialization
+int GRAPH::InitNormal ( const char* title ) {
+    if ( SDL_Init ( SDL_INIT_VIDEO ) < 0 ) {
+        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
 
-	if (mode==RENDERMODE_NORMAL) return InitNormal();
-	else return InitEx();
+    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_SHOWN );
+    if ( window == nullptr ) {
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
+
+    renderer = SDL_CreateRenderer ( window, -1, SDL_RENDERER_ACCELERATED );
+    if ( renderer == nullptr ) {
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
+
+    backBuffer = SDL_CreateTexture ( renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y );
+    if ( backBuffer == nullptr ) {
+        std::cerr << "Back buffer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
+
+    return 1;
 }
 
-int GRAPH::InitEx()
-{
-  DDSURFACEDESC2 ddsd;
-  DDSCAPS2 ddscaps;
-  HRESULT ddrval; 
-  int i;  
-  
+// Fullscreen Exclusive Mode Initialization
+int GRAPH::InitEx ( const char* title ) {
+    if ( SDL_Init ( SDL_INIT_VIDEO ) < 0 ) {
+        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
 
-  // Creamos el objeto DirectDraw
-  ddrval = DirectDrawCreateEx(NULL, (VOID**)&lpDD, IID_IDirectDraw7, NULL);  
-  if( ddrval != DD_OK )
-  {
-	  MessageBox(hwnd, "Error Creando el objeto directX", 0,0);
-	  return 0;
-  }
-  // Definimos el comportamiento de la aplicacion
-  ddrval = lpDD->SetCooperativeLevel (hwnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN );
-  if( ddrval != DD_OK )
-  {
-	  MessageBox(hwnd, "Error en SetCooperativeLevel", 0,0);
-	  return 0;
-  }
+    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_FULLSCREEN );
+    if ( window == nullptr ) {
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
 
-  // Ajustamos el modo de video
-  ddrval = lpDD->SetDisplayMode (RES_X, RES_Y, 16, 0,0);
-  if(ddrval != DD_OK)
-  {	  
-	  MessageBox(hwnd, "Error cambiando el modo de video", 0,0);
-	  return 0;
-  }
+    renderer = SDL_CreateRenderer ( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+    if ( renderer == nullptr ) {
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
 
-  // Creamos la superficie primaria
-  ZeroMemory (&ddsd, sizeof(ddsd));
-  ddsd.dwSize  = sizeof(ddsd);
-  ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
-  ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | 
-						DDSCAPS_FLIP | 
-						DDSCAPS_COMPLEX;
-  ddsd.dwBackBufferCount = 1; 
-  ddrval = lpDD->CreateSurface (&ddsd, &lpDDSPrimary, NULL);
-  if( ddrval != DD_OK )
-  {
-	  MessageBox(hwnd, "Error creando la superficie Primaria", 0,0);
-	  return 0;
-  }
+    backBuffer = SDL_CreateTexture ( renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y );
+    if ( backBuffer == nullptr ) {
+        std::cerr << "Back buffer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+        return 0;
+    }
 
-  // Creamos el BackBuffer
-  ZeroMemory(&ddscaps, sizeof(ddscaps));  
-  ddscaps.dwCaps = DDSCAPS_BACKBUFFER; 
-  ddrval = lpDDSPrimary->GetAttachedSurface(&ddscaps, &lpDDSBack);
-  if( ddrval != DD_OK )
-  {
-	  MessageBox(hwnd, "Error creando la superficie Secundaria", 0,0);
-	  return 0;
-  }
-
-
-	return 1;
+    return 1;
 }
 
-int GRAPH::InitNormal()
-{
-	HRESULT      ddrval;
-	DDSURFACEDESC2 ddsd;
-	DDSCAPS2 ddscaps;	
-	
-	ddrval = DirectDrawCreateEx (NULL, (void**)&lpDD,IID_IDirectDraw7, NULL);
-	if(ddrval != DD_OK) // La superficie no se ha creado
-		return 0; 
-
-	//Determinar el comportamiento de la aplicacion	
-	ddrval = lpDD->SetCooperativeLevel(hwnd, DDSCL_NORMAL); 
-	if(ddrval != DD_OK) 
-		return 0;
-
-	  // Creamos la superficie primaria
-	ZeroMemory (&ddsd, sizeof(ddsd));
-	ddsd.dwSize  = sizeof(ddsd);	
-	ddsd.dwFlags = DDSD_CAPS;
-	ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;	
-	ddrval = lpDD->CreateSurface (&ddsd, &lpDDSPrimary, NULL);
-	if( ddrval != DD_OK )
-	{
-		int mal;
-		switch(ddrval)
-		{
-		case DDERR_INCOMPATIBLEPRIMARY:
-				mal=1; break;
-		case DDERR_INVALIDCAPS:
-				mal=2; break;
-		case DDERR_INVALIDPARAMS:
-				mal=4; break;
-		case DDERR_INVALIDPIXELFORMAT:
-				mal=5; break;
-		}
-		return 0;
-	}
-
-	   // Crear el Clipper para la superficie primaria
-	ddrval = lpDD->CreateClipper (0, &lpClipper, NULL);
-	if( ddrval != DD_OK ) return 0;
-
-	ddrval = lpClipper->SetHWnd (0, hwnd);
-	if( ddrval != DD_OK ) return 0;
-
-	ddrval = lpDDSPrimary->SetClipper (lpClipper);
-	if( ddrval != DD_OK ) return 0;
-
-	  // Crear el BACK-buffer
-	  ZeroMemory(&ddsd, sizeof(ddsd));
-	  ddsd.dwSize = sizeof(ddsd);
-	  ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
-	  ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
-	  ddsd.dwWidth = RES_X;
-	  ddsd.dwHeight = RES_Y;
-	  ddrval = lpDD->CreateSurface(&ddsd, (LPDIRECTDRAWSURFACE7 FAR *)&lpDDSBack, NULL);
-	  if( ddrval != DD_OK ) return 0;
-
-	  return 1;
-
+// Release resources
+void GRAPH::Release () {
+    if ( backBuffer ) {
+        SDL_DestroyTexture ( backBuffer );
+        backBuffer = nullptr;
+    }
+    if ( renderer ) {
+        SDL_DestroyRenderer ( renderer );
+        renderer = nullptr;
+    }
+    if ( window ) {
+        SDL_DestroyWindow ( window );
+        window = nullptr;
+    }
+    SDL_Quit ();
 }
 
 
-void GRAPH::Draw(LPDIRECTDRAWSURFACE7 lpdds, int x, int y)
-{
-	RECT rc;
-	rc.left = 0;
-	rc.top = 0;
-	rc.right = 81;
-	rc.bottom = 81;
-
-
-
-	lpDDSBack->BltFast(x , y, lpdds,
-			&rc, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);
+void GRAPH::Draw ( SPRITE* spr, int x, int y ) {
+    SDL_Rect srcRect = { 0, 0, spr->sx, spr->sy };
+    SDL_Rect dstRect = { x + spr->xoff, y + spr->yoff, spr->sx, spr->sy };
+    SDL_RenderCopy ( renderer, spr->bmp, &srcRect, &dstRect );
 }
 
-void GRAPH::Draw(SPRITE *spr, int x, int y)
-{
-	RECT rc;
-	rc.left = 0;
-	rc.top = 0;
-	rc.right = spr->sx;
-	rc.bottom = spr->sy;
+void GRAPH::Draw ( SDL_Texture* texture, RECT* rect, int x, int y ) {
+    SDL_Rect srcRect = toSDLRect ( *rect );
+    SDL_Rect dstRect = { x, y, srcRect.w, srcRect.h };
 
-
-	lpDDSBack->BltFast(x + spr->xoff, y + spr->yoff, spr->bmp,
-			&rc, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);	
-}
-
-void GRAPH::Draw(LPDIRECTDRAWSURFACE7 lpdds, RECT *rc, int x, int y)
-{
-	lpDDSBack->BltFast(x , y ,lpdds,
-			rc, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);	
-}
-
-void GRAPH::DrawClipped(LPDIRECTDRAWSURFACE7 lpdds, RECT *rc, int x, int y)
-{
-	int sx = rc->right - rc->left;
-	int sy = rc->bottom - rc->top;
-
-	if(x<0){ rc->left = -x; x = 0; }
-	if(x + sx > 639) rc->right -= x + sx - 640;
-	if(y<0) { rc->top = -y; y = 0; }
-	if(y + sy > 479) rc->bottom -= y + sy - 480;
-
-	lpDDSBack->BltFast(x , y , lpdds,
-			rc, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);	
-}
-
-void GRAPH::DrawClipped(SPRITE *spr, int x, int y)
-{
-	RECT rc;
-	rc.left = 0;
-	rc.top = 0;
-	rc.right = spr->sx;
-	rc.bottom = spr->sy;
-
-	if(x<0){ rc.left = -x; x = 0; }
-	if(x + spr->sx > 640) rc.right -= x + spr->sx - 640;
-	if(y<0) { rc.top = -y; y = 0; }
-	if(y + spr->sy > 480) rc.bottom -= y +spr->sy - 480;
-
-	lpDDSBack->BltFast(x + spr->xoff, y + spr->yoff, spr->bmp,
-			&rc, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);	
-}
-
-void GRAPH::Draw(BMNUMFONT *font, int num, int x, int y)
-{
-	RECT rc;
-	char cad[16];
-	int n, i;
-	int esp = 0;
-
-	sprintf(cad, "%d", num);
-	n = strlen(cad);
-
-	for(i=0;i<n;i++)
-	{
-		rc = font->GetRect(cad[i]);		
-		Draw(font->spr->bmp, &rc, x+esp, y);
-		esp += rc.right - rc.left;
-	}
-}
-
-void GRAPH::Draw(BMNUMFONT *font, char cad[], int x, int y)
-{
-	RECT rc;	
-	int n, i;
-	int esp = 0;
-	
-	n = strlen(cad);
-
-	for(i=0;i<n;i++)
-	{
-		rc = font->GetRect(cad[i]);		
-		Draw(font->spr->bmp, &rc, x+esp, y);
-		esp += rc.right - rc.left;
-	}
-}
-
-void GRAPH::DrawClipped(BMNUMFONT *font, char cad[], int x, int y)
-{
-	RECT rc;	
-	int n, i;
-	int esp = 0;
-	
-	n = strlen(cad);
-
-	for(i=0;i<n;i++)
-	{
-		rc = font->GetRect(cad[i]);		
-		DrawClipped(font->spr->bmp, &rc, x+esp, y);
-		esp += rc.right - rc.left;
-	}
+    // SDL_QueryTexture ( texture, NULL, NULL, &dstRect.w, &dstRect.h ); // ?????
+    SDL_RenderCopy ( renderer, texture, &srcRect, &dstRect );
 }
 
 
+void GRAPH::DrawClipped ( SDL_Texture* texture, RECT* rect, int x, int y ) {
+    SDL_Rect srcRect = toSDLRect ( *rect );
+    int sx = srcRect.w;
+    int sy = srcRect.h;
 
-void GRAPH::Flip()
-{
-    RECT destRect;
-    HRESULT hresult;
-    POINT pt;
+    if ( x < 0 ) {
+        srcRect.x = -x;
+        srcRect.w = sx + x;
+        x = 0;
+    }
+    if ( x + sx > 640 ) {
+        srcRect.w = 640 - x;
+    }
+    if ( y < 0 ) {
+        srcRect.y = -y;
+        srcRect.h = sy + y;
+        y = 0;
+    }
+    if ( y + sy > 480 ) {
+        srcRect.h = 480 - y;
+    }
 
-	if (mode == RENDERMODE_EXCLUSIVE) //modo a pantalla completa
-	{  
-		hresult = lpDDSPrimary->Flip (NULL, DDFLIP_WAIT);
-		if (hresult == DDERR_SURFACELOST)
-		{
-			lpDDSPrimary->Restore();
-			lpDDSBack->Restore();
-				lpDDSPrimary->Flip (NULL, DDFLIP_WAIT);
-		}
-	}
-	else //modo ventana
-	{
-		pt.x = pt.y = 0;
-		ClientToScreen (hwnd, &pt);
-		SetRect (&destRect, pt.x, pt.y, pt.x+RES_X, pt.y+RES_Y);
-		hresult = lpDDSPrimary->Blt (&destRect, lpDDSBack, NULL, DDBLT_WAIT, NULL);
-	}
+    SDL_Rect dstRect = { x, y, srcRect.w, srcRect.h };
+    SDL_RenderCopy ( renderer, texture, &srcRect, &dstRect );
+}
 
-	if (hresult == DDERR_SURFACELOST)
-	{
-		lpDDSPrimary->Restore();
-		lpDDSBack->Restore(); 		
-	}	
+void GRAPH::DrawClipped ( SPRITE* spr, int x, int y ) {
+    SDL_Rect srcRect = { 0, 0, spr->sx, spr->sy };
+
+    if ( x < 0 ) {
+        srcRect.x = -x;
+        srcRect.w = spr->sx + x;
+        x = 0;
+    }
+    if ( x + spr->sx > 640 ) {
+        srcRect.w = 640 - x;
+    }
+    if ( y < 0 ) {
+        srcRect.y = -y;
+        srcRect.h = spr->sy + y;
+        y = 0;
+    }
+    if ( y + spr->sy > 480 ) {
+        srcRect.h = 480 - y;
+    }
+
+    SDL_Rect dstRect = { x + spr->xoff, y + spr->yoff, srcRect.w, srcRect.h };
+    SDL_RenderCopy ( renderer, spr->bmp, &srcRect, &dstRect );
+}
+
+void GRAPH::Draw ( BMNUMFONT* font, int num, int x, int y ) {
+    RECT srcRect;
+    char cad[16];
+    int n, i;
+    int esp = 0;
+
+    sprintf ( cad, "%d", num );
+    n = strlen ( cad );
+
+    for ( i = 0; i < n; i++ ) {
+        srcRect = font->GetRect ( cad[i] );
+        //SDL_Rect sdlRect = toSDLRect ( srcRect );
+        Draw ( font->spr->bmp, &srcRect, x + esp, y );
+        esp += srcRect.right - srcRect.left;
+    }
+}
+
+void GRAPH::Draw ( BMNUMFONT* font, char cad[], int x, int y ) {
+    RECT srcRect;
+    int n, i;
+    int esp = 0;
+
+    n = strlen ( cad );
+
+    for ( i = 0; i < n; i++ ) {
+        srcRect = font->GetRect ( cad[i] );
+        Draw ( font->spr->bmp, &srcRect, x + esp, y );
+        esp += srcRect.right - srcRect.left;
+    }
+}
+
+void GRAPH::DrawClipped ( BMNUMFONT* font, char cad[], int x, int y ) {
+    RECT srcRect;
+    int n, i;
+    int esp = 0;
+
+    n = strlen ( cad );
+
+    for ( i = 0; i < n; i++ ) {
+        srcRect = font->GetRect ( cad[i] );
+        DrawClipped ( font->spr->bmp, &srcRect, x + esp, y );
+        esp += srcRect.right - srcRect.left;
+    }
+}
+
+void GRAPH::Flip () {
+    SDL_RenderPresent ( renderer );
+}
+
+void GRAPH::Text ( const char texto[], int x, int y ) {
+    // TODO: Leave this for later
+    //SDL_Color bgColor = { 255, 255, 255, 255 }; // white
+    //SDL_Color textColor = { 50, 0, 0, 255 };     // dark red
+
+    //SDL_Surface* textSurface = TTF_RenderText_Shaded ( font, texto, textColor, bgColor );
+    //if ( textSurface == nullptr ) {
+    //    std::cerr << "Failed to render text! SDL_Error: " << SDL_GetError () << std::endl;
+    //    return;
+    //}
+
+    //SDL_Texture* textTexture = SDL_CreateTextureFromSurface ( renderer, textSurface );
+    //if ( textTexture == nullptr ) {
+    //    std::cerr << "Failed to create texture from surface! SDL_Error: " << SDL_GetError () << std::endl;
+    //    SDL_FreeSurface ( textSurface );
+    //    return;
+    //}
+
+    //SDL_Rect dstRect = { x, y, textSurface->w, textSurface->h };
+    //SDL_RenderCopy ( renderer, textTexture, NULL, &dstRect );
+
+    //SDL_DestroyTexture ( textTexture );
+    //SDL_FreeSurface ( textSurface );
 }
 
 
-void GRAPH::Text(char texto[], int x, int y)
-{
-	SetBkColor(hdc, RGB(255, 255, 255)); 
-	SetTextColor(hdc, RGB(50, 0, 0)); 
-	TextOut(hdc, x, y, texto, strlen(texto)); 
+void GRAPH::Rectangle ( int a, int b, int c, int d ) {
+    SDL_Rect rect = { a, b, c - a, d - b };
+    SDL_RenderDrawRect ( renderer, &rect );
 }
-
-void GRAPH::Ellipse(int a, int b, int c, int d)
-{
-	::Ellipse( hdc, a, b, c, d);
-}
-
-
-void GRAPH::Rectangle(int a, int b, int c, int d)
-{
-	::Rectangle( hdc, a, b, c, d);
-}
-
-void GRAPH::MoveTo(int x, int y)
-{
-	::MoveToEx(hdc, x, y, NULL);	
-}
-
-void GRAPH::LineTo(int x, int y)
-{
-	::LineTo(hdc, x, y);
-}
-
-void GRAPH::Release(void) 
-{ 
-	if(lpDD != NULL) 
-	{ 
-		if(lpDDSPrimary != NULL) 
-		{ 
-			lpDDSPrimary->Release(); 
-			lpDDSPrimary = NULL; 
-		} 
-		lpDD->Release(); 
-		lpDD = NULL; 
-	} 
-} // finiObjects
-
-
 
 
 /****************************************************************/
 /***				OPERACIONES CON BITMAPS					*****/
 /****************************************************************/
+/*void GRAPH::LoadBitmap (SPRITE* spr, const char* szBitmap) {
 
-void GRAPH::LoadBitmap(SPRITE *spr, LPCSTR szBitmap)
+    // TODO: IMG_LoadTexture instead
+    SDL_Surface* surface = SDL_LoadTexture ( szBitmap );
+    if ( surface == nullptr ) {
+        std::cerr << "Failed to load bitmap: " << SDL_GetError () << std::endl;
+        return;
+    }
+
+    spr->sx = surface->w;
+    spr->sy = surface->h;
+    spr->bmp = SDL_CreateTextureFromSurface ( renderer, surface );
+    SDL_FreeSurface ( surface );
+
+    if ( spr->bmp == nullptr ) {
+        std::cerr << "Failed to create texture from surface: " << SDL_GetError () << std::endl;
+        return;
+    }
+}*/
+
+void GRAPH::LoadBitmap ( SPRITE* spr, const char* szBitmap )
 {
-    HBITMAP                 hbm;
-    BITMAP                  bm;
-    DDSURFACEDESC2          ddsd;
+    //The final texture
+    SDL_Texture* newTexture = NULL;
 
+    //Load image at specified path
+    SDL_Surface* loadedSurface = IMG_Load ( szBitmap );
+    if ( loadedSurface == NULL )
+    {
+        printf ( "Unable to load image %s! SDL_image Error: %s\n", szBitmap, IMG_GetError () );
+    }
+    else
+    {
+        // TODO: this mask should be passed as param
+        SDL_SetColorKey ( loadedSurface, SDL_TRUE, 0x00FF0000 );
 
-    //  Intentamos cargar el bitmap como Recurso, sino lo cargamos desde un fichero
-    hbm = (HBITMAP) LoadImage(GetModuleHandle(NULL), szBitmap, IMAGE_BITMAP, 0,
-                              0, LR_CREATEDIBSECTION);
-    if (hbm == NULL)
-        hbm = (HBITMAP) LoadImage(NULL, szBitmap, IMAGE_BITMAP, 0, 0,
-                                  LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-    if (hbm == NULL)
-        return;
-    // Tamaño del bitmap
-    GetObject(hbm, sizeof(bm), &bm);
+        //Create texture from surface pixels
+        newTexture = SDL_CreateTextureFromSurface ( renderer, loadedSurface );
+        if ( newTexture == NULL )
+        {
+            printf ( "Unable to create texture from %s! SDL Error: %s\n", szBitmap, SDL_GetError () );
+        }
 
-    // Creamos la superficie donde guardamos el bitmap
-    ZeroMemory(&ddsd, sizeof(ddsd));
-    ddsd.dwSize = sizeof(ddsd);
-    ddsd.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH;
-    ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
-    spr->sx = ddsd.dwWidth = bm.bmWidth;
-    spr->sy = ddsd.dwHeight = bm.bmHeight;
-    if (lpDD->CreateSurface(&ddsd, &spr->bmp, NULL) != DD_OK)
-        return;
-    this->CopyBitmap(spr->bmp, hbm, 0, 0, 0, 0);
-    DeleteObject(hbm);
-    
+        //Get rid of old loaded surface
+        SDL_FreeSurface ( loadedSurface );
+    }
+
+    spr->bmp = newTexture;
+    spr->sx = loadedSurface->w;
+    spr->sy = loadedSurface->h;
 }
 
-/********************************************************
-  CopyBitmap()
 
-  Dibuja un bitmap en una Superficie DirectDraw.
-********************************************************/
-HRESULT 
-GRAPH::CopyBitmap(IDirectDrawSurface7 * pdds, HBITMAP hbm, int x, int y,
-             int dx, int dy)
-{
-    HDC                     hdcImage;
-    HDC                     hdc;
-    BITMAP                  bm;
-    DDSURFACEDESC2          ddsd;
-    HRESULT                 hr;
-
-    if (hbm == NULL || pdds == NULL)
+HRESULT GRAPH::CopyBitmap ( SDL_Texture* texture, SDL_Surface* surface, int x, int y, int dx, int dy ) {
+    if ( texture == nullptr || surface == nullptr ) {
         return E_FAIL;
-    // Por si acaso...
-    pdds->Restore();
-
-    // Creamos un contexto de dispositivo compatible donde
-	// guardaremos el bitmap	
-    hdcImage = CreateCompatibleDC(NULL);
-    if (!hdcImage)
-        OutputDebugString("createcompatible dc failed\n");
-    SelectObject(hdcImage, hbm);
-    //
-    // Obtenemos las dimensiones del bitmap
-    //
-    GetObject(hbm, sizeof(bm), &bm);
-    dx = dx == 0 ? bm.bmWidth : dx;
-    dy = dy == 0 ? bm.bmHeight : dy;
-    //
-    // Obtenemos el tamaño de la superficie
-    //
-    ddsd.dwSize = sizeof(ddsd);
-    ddsd.dwFlags = DDSD_HEIGHT | DDSD_WIDTH;
-    pdds->GetSurfaceDesc(&ddsd);
-
-    if ((hr = pdds->GetDC(&hdc)) == DD_OK)
-    {
-        StretchBlt(hdc, 0, 0, ddsd.dwWidth, ddsd.dwHeight, hdcImage, x, y,
-                   dx, dy, SRCCOPY);
-        pdds->ReleaseDC(hdc);
     }
-    DeleteDC(hdcImage);
-    return hr;
+
+    SDL_Rect srcRect = { x, y, dx, dy };
+    SDL_Rect dstRect = { 0, 0, dx, dy }; // Destination rect starts at the top-left corner
+
+    // Create texture from surface
+    texture = SDL_CreateTextureFromSurface ( renderer, surface );
+    if ( texture == nullptr ) {
+        std::cerr << "Failed to create texture from surface: " << SDL_GetError () << std::endl;
+        return E_FAIL;
+    }
+
+    // Copy the surface onto the texture
+    if ( SDL_RenderCopy ( renderer, texture, &srcRect, &dstRect ) != 0 ) {
+        std::cerr << "Failed to copy surface to texture: " << SDL_GetError () << std::endl;
+        return E_FAIL;
+    }
+
+    return S_OK;
 }
 
 
-/********************************************************
-  ColorMatch()
-
-  Convierte un color RGB a un color fisico.
-  Esta funcion es util para cuando vamos a leer colores en
-  modos de video menores de 24bits.
-********************************************************/
-
-DWORD
-GRAPH::ColorMatch(IDirectDrawSurface7 * pdds, COLORREF rgb)
-{
-    COLORREF                rgbT;
-    HDC                     hdc;
-    DWORD                   dw = CLR_INVALID;
-    DDSURFACEDESC2          ddsd;
-    HRESULT                 hres;
-
-    //
-    //  Usamos la funcion SetPixel de la GDI
-    //
-    if (rgb != CLR_INVALID && pdds->GetDC(&hdc) == DD_OK)
-    {
-        rgbT = GetPixel(hdc, 0, 0);     // Save current pixel value
-        SetPixel(hdc, 0, 0, rgb);       // Set our value
-        pdds->ReleaseDC(hdc);
-    }
-    //
-    // Bloqueamos la superfici de manera que podamos leer el color convertido	
-    //
-    ddsd.dwSize = sizeof(ddsd);
-    while ((hres = pdds->Lock(NULL, &ddsd, 0, NULL)) == DDERR_WASSTILLDRAWING)
-        ;
-    if (hres == DD_OK)
-    {
-        dw = *(DWORD *) ddsd.lpSurface;                 // Get DWORD
-        if (ddsd.ddpfPixelFormat.dwRGBBitCount < 32)
-            dw &= (1 << ddsd.ddpfPixelFormat.dwRGBBitCount) - 1;  // Mask it to bpp
-        pdds->Unlock(NULL);
-    }
-    
-
-    if (rgb != CLR_INVALID && pdds->GetDC(&hdc) == DD_OK)
-    {
-        SetPixel(hdc, 0, 0, rgbT);
-        pdds->ReleaseDC(hdc);
-    }
-    return dw;
+Uint32 GRAPH::ColorMatch ( SDL_Surface* surface, Uint32 rgb ) {
+    Uint32 result = SDL_MapRGB ( surface->format, GetRValue ( rgb ), GetGValue ( rgb ), GetBValue ( rgb ) );
+    return result;
 }
 
-/********************************************************
-  SetColorKey()
+HRESULT GRAPH::SetColorKey ( SDL_Texture* texture, Uint32 rgb ) {
 
-  Pone el color-key para una superficie, dado un RGB.
-  Este color es el color transparente en los sprites.
-********************************************************/
-HRESULT
-GRAPH::SetColorKey(IDirectDrawSurface7 * pdds, COLORREF rgb)
-{
-    DDCOLORKEY              ddck;
+    // Set the color key
+    //SDL_SetColorKey ( texture, SDL_TRUE, rgb );
 
-    ddck.dwColorSpaceLowValue = ColorMatch(pdds, rgb);
-    ddck.dwColorSpaceHighValue = ddck.dwColorSpaceLowValue;
-    return pdds->SetColorKey(DDCKEY_SRCBLT, &ddck);
+    return S_OK;
 }
-
 
 
 
@@ -500,4 +346,12 @@ void SPRITE::Init(GRAPH *gr, char file[], int offx, int offy)
 
 	xoff = offx;
 	yoff = offy;
+}
+
+void SPRITE::Release ( )
+{
+    if ( bmp != NULL ) {
+        SDL_DestroyTexture ( bmp );
+        bmp = NULL;
+    }
 }
