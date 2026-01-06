@@ -107,43 +107,18 @@ LRESULT CALLBACK WndProc( HWND hwnd, UINT message,
 
 	switch( message )
 	{
-    case WM_COMMAND:                                        
-	       switch (wParam)
-           {
-            case IDM_CONS_NEW:
-//				scene.map.New();
-                 break;
-
-			case IDM_CONFIG:
-				screen->SetPause(TRUE);
-				ShowConfigDlg(hInst,hWndMain);
-			break;
-
-			case IDM_SALIR:
-				screen->SetPause(TRUE);
-				if(MessageBox(hWndMain, "Estas seguro de querer salir?", "SALIR", MB_YESNO | MB_ICONQUESTION) == IDYES)
-					PostQuitMessage(0);
-				screen->SetPause(FALSE);
-			break;
-
-				 
-            default:
-                return DefWindowProc(hwnd, message, wParam, lParam);
-           }   		 
-         break;
-
 		// mensaje producido en la creación de la ventana
 		case WM_CREATE:				
 				//scene.hFondo = LoadBitmap(hInst, "IDB_FONDO");				
 				break;
+				
 		case WM_ACTIVATE:
 			screen->SetActive((BOOL) wParam);
 			if(screen->IsActive() )
 			{
 				// necesitamos reactivar el teclado
 				input.ReacquireInput();
-			}
-            
+			}            
 		break;
 
 		case WM_KEYDOWN:
@@ -157,16 +132,22 @@ LRESULT CALLBACK WndProc( HWND hwnd, UINT message,
 						if(MessageBox(hWndMain, "Estas seguro de querer salir?", "SALIR", MB_YESNO | MB_ICONQUESTION) == IDYES)
 						PostQuitMessage(0);
 					}
-
 				break;
 
 				case 'p':
     			case 'P':
 	    			screen->SetPause(!screen->IsPaused());
 				break;
+				
+				// Tecla C para abrir configuración (reemplaza el menú)
+				case 'C':
+				{
+					// Crear la pantalla de configuración
+					screen = new PCONFIGSCREEN();
+					screen->Init();
+				}
+				break;
 			}
-		break;
-
 		break;
 	
 		// mensaje producido al cerrar la ventana
@@ -197,14 +178,14 @@ int Window_Create(HINSTANCE hInstance, int nCmdShow)
   wc.hIcon = LoadIcon( hInstance, "IDI_ICONPANG" );
   wc.hCursor = NULL;
   wc.hbrBackground = (HBRUSH) COLOR_WINDOW;
-  wc.lpszMenuName = NULL;
+  wc.lpszMenuName = NULL;  // Sin menú
   wc.lpszClassName = "MiClase";
   if (!RegisterClass(&wc)) return FALSE;
   
-  hWndMain = CreateWindow ("MiClase", "HOLA!!", 
+  hWndMain = CreateWindow ("MiClase", "Chuper Pang", 
 	  WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_POPUP | WS_MINIMIZEBOX, 
 	  0,0,640,480, NULL, 
-	  LoadMenu(hInstance, MAKEINTRESOURCE(IDR_MENU1)), 
+	  NULL,  // Sin menú
 	  hInstance, NULL);
 
   if (hWndMain==NULL)
@@ -213,7 +194,6 @@ int Window_Create(HINSTANCE hInstance, int nCmdShow)
 	return FALSE;
   }
 
-
 	//-----------------------------------------------------------------//
 
 	// Hacemos visible la ventana y la actualizamos:
@@ -221,15 +201,14 @@ int Window_Create(HINSTANCE hInstance, int nCmdShow)
     Window_GetSize (hWndMain, &sx, &sy);
     Window_GetClientSize (hWndMain, &csx, &csy);
 
-    MoveWindow (hWndMain,(GetSystemMetrics(SM_CXSCREEN)-RES_X)/2,(GetSystemMetrics(SM_CYSCREEN)-(RES_Y+(sy-csy)))/2,RES_X+(sx-csx), RES_Y+(sy-csy), TRUE);
+    MoveWindow (hWndMain,(GetSystemMetrics(SM_CXSCREEN)-RES_X)/2,(GetSystemMetrics(SM_CYSCREEN-(RES_Y+(sy-csy))))/2,RES_X+(sx-csx), RES_Y+(sy-csy), TRUE);
 
 	ShowWindow( hWndMain, nCmdShow );
 	UpdateWindow( hWndMain );
 	SetFocus(hWndMain);
 
-
-	if(!ShowInitDlg(hInst, hWndMain))
-		PostQuitMessage(0);
+	// Establecer modo ventana por defecto (eliminamos el diálogo inicial)
+	globalmode = RENDERMODE_NORMAL;
 
 	if(!input.Init(hInst, hWndMain))
 	{
@@ -242,6 +221,8 @@ int Window_Create(HINSTANCE hInstance, int nCmdShow)
 		MessageBox(hWndMain, "Error iniciando Direct Draw \n ¿tienes instaladas las DirectX version 7?",0,0);;
 		return FALSE;
 	}
+	
+	return TRUE;
 }
 
 
@@ -281,7 +262,7 @@ int ShowInitDlg( HINSTANCE hInst, HWND hWnd)
 }
 
 
-/****************** FUNCIONES DE GAMEINFO ********************/
+	/****************** FUNCIONES DE GAMEINFO ********************/
 
 PGAMEINFO::PGAMEINFO()
 {
@@ -573,4 +554,4 @@ char CloseMusic( void )
   // recomendable también antes de PlaySound();
   return( mciSendString("close all", 0, 0, 0 ) == 0 );
 }
-//=== Fin del archivo ====================================================
+//=== Fin del archivo ====================================================//=== Fin del archivo ====================================================//=== Fin del archivo ====================================================//=== Fin del archivo ====================================================//=== Fin del archivo ====================================================//=== Fin del archivo ====================================================//=== Fin del archivo ====================================================//=== Fin del archivo ====================================================

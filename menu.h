@@ -3,9 +3,10 @@
 
 typedef struct PMNUBITMAPS
 {
-	SPRITE back;
 	SPRITE title;
-	SPRITE pulsa;
+	SPRITE optionPlay;
+	SPRITE optionConfig;
+	SPRITE optionExit;
 }PMENUBITMAPS;
 
 /*******************************************************
@@ -20,14 +21,14 @@ class PMENU : public PAPP
 public:
 	
 	PMENUBITMAPS bmp;
-	int xb, yb; //x e y del background
-	int x, y;
-	BOOL visible; // PULSA UNA TECLA
+	int x, y; // posición del título
+	int selectedOption; // 0=JUGAR, 1=CONFIGURACION, 2=SALIR
+	BOOL visible; // parpadeo de la opción seleccionada
 	int cont; //contador para el parpadeo 
 	int Init();
 	int InitBitmaps();
 	void DrawTitle();
-	void DrawBack();	
+	void DrawMenu();
 
 	void * MoveAll();
 	int DrawAll();

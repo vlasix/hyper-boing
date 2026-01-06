@@ -211,31 +211,52 @@ void GRAPH::Flip () {
 }
 
 void GRAPH::Text ( const char texto[], int x, int y ) {
-    // TODO: Leave this for later
-    //SDL_Color bgColor = { 255, 255, 255, 255 }; // white
-    //SDL_Color textColor = { 50, 0, 0, 255 };     // dark red
-
-    //SDL_Surface* textSurface = TTF_RenderText_Shaded ( font, texto, textColor, bgColor );
-    //if ( textSurface == nullptr ) {
-    //    std::cerr << "Failed to render text! SDL_Error: " << SDL_GetError () << std::endl;
-    //    return;
-    //}
-
-    //SDL_Texture* textTexture = SDL_CreateTextureFromSurface ( renderer, textSurface );
-    //if ( textTexture == nullptr ) {
-    //    std::cerr << "Failed to create texture from surface! SDL_Error: " << SDL_GetError () << std::endl;
-    //    SDL_FreeSurface ( textSurface );
-    //    return;
-    //}
-
-    //SDL_Rect dstRect = { x, y, textSurface->w, textSurface->h };
-    //SDL_RenderCopy ( renderer, textTexture, NULL, &dstRect );
-
-    //SDL_DestroyTexture ( textTexture );
-    //SDL_FreeSurface ( textSurface );
+    // Implementación básica sin SDL_TTF
+    // Dibujamos rectángulos pequeños para simular caracteres
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    
+    int charWidth = 8;
+    int charHeight = 12;
+    int currentX = x;
+    
+    for (int i = 0; texto[i] != '\0'; i++) {
+        char c = texto[i];
+        
+        // Espacio
+        if (c == ' ') {
+            currentX += charWidth;
+            continue;
+        }
+        
+        // Dibujar un rectángulo simple para cada carácter
+        SDL_Rect charRect = {currentX + 1, y + 1, charWidth - 2, charHeight - 2};
+        SDL_RenderFillRect(renderer, &charRect);
+        
+        // Dibujar algunos "detalles" para diferenciar caracteres
+        if (c >= 'A' && c <= 'Z') {
+            // Letra mayúscula - línea superior
+            SDL_SetRenderDrawColor(renderer, 200, 200, 255, 255);
+            SDL_RenderDrawLine(renderer, currentX + 2, y + 3, currentX + charWidth - 2, y + 3);
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        }
+        else if (c >= 'a' && c <= 'z') {
+            // Letra minúscula - línea media
+            SDL_SetRenderDrawColor(renderer, 255, 255, 200, 255);
+            SDL_RenderDrawLine(renderer, currentX + 2, y + charHeight/2, currentX + charWidth - 2, y + charHeight/2);
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        }
+        else if (c >= '0' && c <= '9') {
+            // Número - más pequeño
+            charRect.w = charWidth - 3;
+            charRect.h = charHeight - 3;
+            SDL_SetRenderDrawColor(renderer, 255, 200, 200, 255);
+            SDL_RenderFillRect(renderer, &charRect);
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        }
+        
+        currentX += charWidth;
+    }
 }
-
-
 void GRAPH::Rectangle ( int a, int b, int c, int d ) {
     SDL_Rect rect = { a, b, c - a, d - b };
     SDL_RenderDrawRect ( renderer, &rect );

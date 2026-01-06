@@ -18,18 +18,13 @@ PSCENE::PSCENE(PSTAGE *stg, PSTAGECLEAR *pstgclr)
 
 int PSCENE::Init()
 {
+	// Llamar a la inicialización base
+	PAPP::Init();
+	
 	char cadena[MAX_PATH];
 
 	change = 0;
-	active = TRUE;
 	levelclear = FALSE;
-	SetGameSpeed(60);
-	diftime1=0; 
-	diftime2=gamespeed;
-	time1 = GetTickCount()+gamespeed;
-	time2 = GetTickCount();
-
-	pause = FALSE;
 	gameover = FALSE;
 	gameovercount = -2;
 	timeline = 0;
@@ -41,7 +36,6 @@ int PSCENE::Init()
 		gameinf.player[PLAYER2]->x = stage->xpos[PLAYER2];
 	
 	CloseMusic();
-
 
 /*=============================================*/	
 
@@ -76,9 +70,6 @@ int PSCENE::InitBitmaps()
 	bmp.redball[3].Init(&graph, "graph\\ball-rd4.png");
 	for(i=0;i<4;i++)
 		graph.SetColorKey(bmp.redball[i].bmp, RGB(0,255,0));
-
-
-
 
 	bmp.miniplayer[PLAYER1].Init(&graph, "graph\\miniplayer1.png");
 	bmp.miniplayer[PLAYER2].Init(&graph, "graph\\miniplayer2.png");
@@ -138,9 +129,9 @@ int PSCENE::InitBitmaps()
 	fontnum[2].Init(&bmp.fontnum[2]);
 	fontnum[2].SetValues(offs2);
 
-
 	return 1;
 }
+
 /*****************************************************************/
 /*******	FUNCIONES DE MODIFICACION Y CONSULTA        **********/
 /*****************************************************************/
@@ -284,12 +275,6 @@ void PSCENE::Win()
 /*******	FUNCIONES DE OPERACION Y PROCESADO INTERNO  **********/
 /*****************************************************************/
 
-/************************************************************
-	  CheckColisions()
-  
-	Comprueba las colisiones de todos los objetos en pantalla
-	entre si y actua en consecuencia.
-*************************************************************/
 void PSCENE::CheckColisions()
 {
 
@@ -428,14 +413,6 @@ void PSCENE::CheckColisions()
 }
 
 
-/************************************************************
-	  Decide()
-  
-	Esta es una funciona auxiliar usada para la deteccion de
-	colisiones PELOTA-PLATAFORMA.
-	Aqui decidimos, cuando hay ambiguedad en la colision, hacia
-	que lado rebotara la pelota y hacia que lado no.
-*************************************************************/
 void PSCENE::Decide(BALL *b, FLOORCOLISION *fc, int moved)
 {
 	
@@ -468,15 +445,6 @@ void PSCENE::Decide(BALL *b, FLOORCOLISION *fc, int moved)
 
 }
 
-/************************************************************
-	  CheckSequence()
-  
-	Aqui se extrae un POBJECT de la secuencia de la pantalla.
-	Si la linea de tiempo del juego coincide o es mayor que
-	el valor de comienzo de alguno de los objetos contenidos 
-	en <stage> entonces se extrae el objeto, y se trata como
-	es debido, es decir, se inserta en Pantalla.
-*************************************************************/
 void PSCENE::CheckSequence()
 {
 	POBJECT obj;
@@ -501,17 +469,6 @@ void PSCENE::CheckSequence()
 		}
 	}while(obj.id != OBJ_NULL);
 }
-
-
-/************************************************************
-	  MoveAll()
-  
-	Mueve un "fotograma" del juego. Anima el escenario, procesando
-	todas las operaciones necesarias.
-	Desde aqui es donde se llama a la funcion de Comprobar las
-	colisiones, se comprueban estados, se desplazan los objetos
-	que lo necesiten, y se lee del teclado para actuar en consecuencia.
-*************************************************************/
 
 void * PSCENE::MoveAll()
 {	
@@ -649,8 +606,6 @@ void * PSCENE::MoveAll()
 	}
 
 	
-	
-
 	if(dsecond<60) dsecond++; // decimas de segundos
 	else  // contador de segundos
 	{
@@ -704,11 +659,6 @@ void * PSCENE::MoveAll()
 }
 
 
-/************************************************************
-	  Release()
-  
-	Libera los recursos reservados en Init().
-*************************************************************/
 int PSCENE::Release()
 {
 	int i;
@@ -728,7 +678,6 @@ int PSCENE::Release()
 	bmp.time.Release();
 	bmp.gameover.Release();
 	bmp.continu.Release();
-	
 
 	for(i=0;i<5;i++)		
 		bmp.mark[i].Release();
@@ -741,7 +690,7 @@ int PSCENE::Release()
 
 	delete this;
 
-	return 1 ;
+	return 1;
 }
 
 /*****************************************************************/
@@ -766,19 +715,14 @@ void PSCENE::Draw(PLAYER *pl)
 void PSCENE::Draw(SHOOT *sht)
 {
 	int i;
-
 	graph.Draw(sht->spr[0], sht->x, sht->y);
 
 	for(i= sht->y + sht->spr[0]->sy ; i< MAX_Y; i+=sht->spr[1]->sy)
 		graph.Draw(sht->spr[1+sht->tail], sht->x, i);
-/*		
-		graph.MoveTo(sht->xi, sht->yi);
-	graph.LineTo(sht->x, sht->y);*/
 }
 
 void PSCENE::Draw(FLOOR *fl)
 {	
-	//graph.Rectangle(fl->x, fl->y, fl->x+fl->sx, fl->y+fl->sy);
 	graph.Draw(fl->spr, fl->x, fl->y);
 }
 
@@ -806,12 +750,6 @@ void PSCENE::DrawScore()
 			}
 		}
 }
-
-/************************************************************
-	  DrawMark()
-  
-	Dibuja el marco de ladrillo azul.
-*************************************************************/
 
 void PSCENE::DrawMark()
 {
@@ -843,40 +781,8 @@ int PSCENE::DrawAll()
 	BALL *ptb;
 	SHOOT *pts;
 	FLOOR *pfl;
-	RECT rc;
-	HBRUSH hb;
-	char cadena[60];
-	
-	//if(!graph.lpDD) return 0;
 
 	DrawBackground();
-	//graph.GetDC();
-	
-
-	/********* VARIABLES A MOSTRAR *********/
-
-	/*	SetBkColor(graph.hdc, RGB(255,255,255));	
-	SelectObject(graph.hdc, GetStockObject(BLACK_BRUSH));
-	SelectObject(graph.hdc, GetStockObject(BLACK_PEN));
-	sprintf(cadena, "FPS = %d FPSVIRT=%d", fps, fpsv);
-	graph.Text(cadena, 320, 40);
-	sprintf(cadena, "numshoots = %d  cont = %d", gameinf.player[PLAYER1]->numshoots, gameinf.player[PLAYER1]->cont);
-	graph.Text(cadena, 320, 60);
-
-	pt = lsballs.GetFirstNode();
-	if(pt)
-	{
-		ptb = (BALL*) pt->data;	
-		sprintf(cadena, "y = %f t=%f", ptb->y, ptb->t);	
-		graph.Text(cadena, 16, 20);
-		//sprintf(cadena, "tmax = %f incy=%d", ptb->tmax, ptb->diry);	
-		//graph.Text(cadena, 16, 40);
-		//sprintf(cadena, "top = %d y0=%f", ptb->top, ptb->y0);	
-		//graph.Text(cadena, 16, 60);
-	}	
-*/
-	
-	//graph.ReleaseDC();
 	
 	pt = lsfloor.GetFirstNode();
 	while(pt)
@@ -924,8 +830,6 @@ int PSCENE::DrawAll()
 		}
 	}
 
-
-
 	if(pstageclear) pstageclear->DrawAll();
 	graph.Flip();
 
@@ -938,12 +842,10 @@ int PSCENE::DrawAll()
 			lasttck = tck;
 		}
 		else
-			cont++; //Frames por segundo
+			cont++;
 
 	return 1;
 }
-
-//============================================================//
 
 
 

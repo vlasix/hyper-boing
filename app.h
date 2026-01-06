@@ -1,6 +1,8 @@
 #ifndef PAPP_H_
 #define PAPP_H_
 
+// Forward declaration
+class SPRITE;
 
 /********************************************************
  clase PAPP
@@ -39,6 +41,11 @@ public:
 	short int diftime1, diftime2;
 	long time1, time2;
 
+	// Background scrolling compartido
+	static SPRITE* sharedBackground;
+	static int scrollX, scrollY;
+	static bool backgroundInitialized;
+
 	void * DoTick();
 	void DoPause();
 	void SetGameSpeed(int speed);
@@ -49,10 +56,17 @@ public:
 
 	PAPP();
 
-	virtual int Init()=0;
+	// Init es ahora virtual (no pura) para que las clases derivadas puedan llamarlo
+	virtual int Init();
 	virtual void * MoveAll()=0;
 	virtual int DrawAll()=0;
-	virtual int Release()=0;	
+	virtual int Release()=0;
+	
+	// Funciones compartidas
+	static void InitSharedBackground();
+	static void UpdateScrollingBackground();
+	static void DrawScrollingBackground();
+	static void ReleaseSharedBackground();
 
 };
 

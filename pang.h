@@ -16,6 +16,7 @@
 #include "menu.h"
 #include "select.h"
 #include "stageclear.h"
+#include "configscreen.h"
 #include "mlist.h"
 #include "pangmap.h"
 #include "ball.h"

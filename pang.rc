@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "winres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -23,162 +23,13 @@ LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_MEXICAN
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Menu
-//
-
-IDR_MENU1 MENU DISCARDABLE 
-BEGIN
-    MENUITEM "Salir",                       IDM_SALIR
-    POPUP "Juego"
-    BEGIN
-        MENUITEM "Configuracion \t",            IDM_CONFIG
-    END
-    POPUP "Constructor"
-    BEGIN
-        MENUITEM "Nueva pantalla",              IDM_CONS_NEW
-        MENUITEM "Abrir pantalla",              IDM_CONS_OPEN
-        MENUITEM "Guardar pantalla",            IDM_CONS_SAVE
-        MENUITEM "Guardar pantalla como...",    IDM_CONS_SAVEAS
-        MENUITEM "Configuracion",               IDM_CONS_CONFIG
-        MENUITEM SEPARATOR
-    END
-END
-
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_DIALOG1 DIALOG DISCARDABLE  0, 0, 67, 154
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "Herramientas"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,7,132,53,14
-    CONTROL         "Plataforma",IDC_FLOOR,"Button",BS_AUTORADIOBUTTON,11,7,
-                    49,10
-    CONTROL         "Bolas",IDC_BALLS,"Button",BS_AUTORADIOBUTTON,12,39,33,
-                    10
-    CONTROL         "Items",IDC_ITEMS,"Button",BS_AUTORADIOBUTTON,11,23,33,
-                    10
-    CONTROL         "List1",IDC_LIST1,"SysListView32",WS_BORDER | WS_TABSTOP,
-                    7,62,53,59
-END
-
-IDD_KEYBCONFIG DIALOG DISCARDABLE  0, 0, 268, 100
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Configurar Teclas"
-FONT 8, "MS Sans Serif"
-BEGIN
-    PUSHBUTTON      "OK",IDOK,79,75,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,135,75,50,14
-    GROUPBOX        "Player [1]",IDC_STATIC,7,7,121,63
-    LTEXT           "Izquierda",IDC_STATIC,13,24,30,8
-    LTEXT           "Derecha",IDC_STATIC,14,38,28,8
-    LTEXT           "Disparo",IDC_STATIC,18,52,25,8
-    COMBOBOX        IDC_KEYCONF1_LEFT,46,20,72,88,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_KEYCONF1_RIGHT,46,35,72,88,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_KEYCONF1_SHOOT,46,50,72,88,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Player [2]",IDC_STATIC,140,7,121,63
-    LTEXT           "Izquierda",IDC_STATIC,155,23,30,8
-    LTEXT           "Derecha",IDC_STATIC,156,39,28,8
-    LTEXT           "Disparo",IDC_STATIC,160,53,25,8
-    COMBOBOX        IDC_KEYCONF2_LEFT,188,21,72,88,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_KEYCONF2_RIGHT,188,36,72,88,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_KEYCONF2_SHOOT,188,50,72,88,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
-END
-
-IDD_INIT DIALOG DISCARDABLE  0, 0, 186, 95
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Chuper Pang !"
-FONT 8, "MS Sans Serif"
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,32,74,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,97,74,50,14
-    CONTROL         "Iniciar en modo ventana",IDC_RADIO1,"Button",
-                    BS_AUTORADIOBUTTON,19,23,92,10
-    CONTROL         "Iniciar en modo Pantalla Completa",IDC_RADIO2,"Button",
-                    BS_AUTORADIOBUTTON,19,45,123,10
-    ICON            "IDI_ICONPANG",IDC_STATIC,141,17,20,20
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    "IDD_DIALOG1", DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 60
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 149
-    END
-
-    "IDD_KEYBCONFIG", DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 261
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 93
-    END
-
-    "IDD_INIT", DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 179
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 88
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Icon
 //
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICONPANG            ICON    DISCARDABLE     "graph\\pang.ico"
+
 #endif    // Spanish (Mexican) resources
 /////////////////////////////////////////////////////////////////////////////
 
