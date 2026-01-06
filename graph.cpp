@@ -22,23 +22,31 @@ int GRAPH::Init ( const char* title, int _mode ) {
 }
 
 // Normal Windowed Mode Initialization
+// Normal Windowed Mode Initialization
 int GRAPH::InitNormal ( const char* title ) {
     if ( SDL_Init ( SDL_INIT_VIDEO ) < 0 ) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError () << std::endl;
         return 0;
     }
 
-    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_SHOWN );
+    // Add SDL_WINDOW_RESIZABLE for resizing
+    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE );
     if ( window == nullptr ) {
         std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError () << std::endl;
         return 0;
     }
+
+    // Set Minimum size
+    SDL_SetWindowMinimumSize(window, RES_X, RES_Y);
 
     renderer = SDL_CreateRenderer ( window, -1, SDL_RENDERER_ACCELERATED );
     if ( renderer == nullptr ) {
         std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
         return 0;
     }
+
+    // Set Logical Size for automatic scaling
+    SDL_RenderSetLogicalSize(renderer, RES_X, RES_Y);
 
     backBuffer = SDL_CreateTexture ( renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y );
     if ( backBuffer == nullptr ) {
@@ -56,7 +64,8 @@ int GRAPH::InitEx ( const char* title ) {
         return 0;
     }
 
-    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_FULLSCREEN );
+    // Use SDL_WINDOW_FULLSCREEN_DESKTOP for better compatibility
+    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_FULLSCREEN_DESKTOP );
     if ( window == nullptr ) {
         std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError () << std::endl;
         return 0;
@@ -68,6 +77,9 @@ int GRAPH::InitEx ( const char* title ) {
         return 0;
     }
 
+    // Set Logical Size for automatic scaling
+    SDL_RenderSetLogicalSize(renderer, RES_X, RES_Y);
+
     backBuffer = SDL_CreateTexture ( renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y );
     if ( backBuffer == nullptr ) {
         std::cerr << "Back buffer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
@@ -75,6 +87,14 @@ int GRAPH::InitEx ( const char* title ) {
     }
 
     return 1;
+}
+
+void GRAPH::SetFullScreen(bool fs)
+{
+    if(fs)
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    else
+        SDL_SetWindowFullscreen(window, 0);
 }
 
 // Release resources

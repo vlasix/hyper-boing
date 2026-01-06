@@ -1,5 +1,6 @@
 #include "pang.h"
 #include "app.h"
+#include "configdata.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -25,6 +26,7 @@ HWND hConfigDlg;
 GRAPH graph; // Objeto para el modo grafico
 MINPUT input; //Objeto para DirectInput, Funciones para teclado
 PGAMEINFO gameinf;
+CONFIGDATA config; // Objeto para configuración persistente
 PAPP *screen, *nextscreen;
 
 //=== Función principal WinMain() ========================================
@@ -104,6 +106,9 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
         // DoTick seems to handle timing.
     }
 
+    // Guardar la configuración antes de salir
+    config.Save();
+
     graph.Release();
     CloseMusic();
 
@@ -135,7 +140,10 @@ int Window_Create(HINSTANCE hInstance, int nCmdShow)
     hWndMain = NULL; // No Win32 window
 
     // Establecer modo ventana por defecto (eliminamos el diálogo inicial)
-    globalmode = RENDERMODE_NORMAL;
+    //globalmode = RENDERMODE_NORMAL; -- Already set in Load if exists
+
+    // Initialize Config
+    config.Load();
 
     if(!input.Init(hInst, hWndMain))
     {

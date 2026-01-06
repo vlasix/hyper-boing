@@ -247,6 +247,7 @@
     <ClCompile Include="app.cpp" />
     <ClCompile Include="ball.cpp" />
     <ClCompile Include="bmfont.cpp" />
+    <ClCompile Include="configdata.cpp" />
     <ClCompile Include="configscreen.cpp" />
     <ClCompile Include="floor.cpp" />
     <ClCompile Include="graph.cpp" />

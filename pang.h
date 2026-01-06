@@ -63,7 +63,7 @@
 
 typedef struct PGAMEBITMAPS
 {
-    SPRITE player[2][21];	
+    SPRITE player[2][21];
 };
 
 
@@ -81,10 +81,10 @@ public:
     SDL_Scancode right;
     SDL_Scancode shoot;
 
-    void SetLeft( SDL_Scancode _left) { this->left = _left; }
-    void SetRight( SDL_Scancode _right) { this->right = _right; }
-    void SetShoot( SDL_Scancode _shoot) { this->shoot = _shoot; }
-    void Set( SDL_Scancode lf, SDL_Scancode rg, SDL_Scancode sh)
+    void SetLeft(SDL_Scancode _left) { this->left = _left; }
+    void SetRight(SDL_Scancode _right) { this->right = _right; }
+    void SetShoot(SDL_Scancode _shoot) { this->shoot = _shoot; }
+    void Set(SDL_Scancode lf, SDL_Scancode rg, SDL_Scancode sh)
     {
         this->left = lf;
         this->right = rg;
@@ -103,8 +103,8 @@ class PGAMEINFO
 public:
     int numplayers;
     int numstages;
-    PLAYER *player[2];
-    PAPP *scene;
+    PLAYER* player[2];
+    PAPP* scene;
     KEYS keys[2];
 
     PGAMEBITMAPS bmp;
@@ -112,25 +112,25 @@ public:
     int currentstage;
     PSTAGE stage[6];
     BOOL menu;
-    
+
     PGAMEINFO();
 
     void Init();
     void InitStages();
-    void SetCurrent(PAPP *app);
+    void SetCurrent(PAPP* app);
     void Release();
 };
 
 class PSCENE;
 
-char OpenMusic( char * );
-char PlayMusic( void );
-char StopMusic( void );
-char ContinueMusic( void );
-char CloseMusic( void );
+char OpenMusic(char*);
+char PlayMusic(void);
+char StopMusic(void);
+char ContinueMusic(void);
+char CloseMusic(void);
 int Window_Create(HINSTANCE hInstance, int nCmdShow);
-void Window_GetClientSize (HWND hwnd, int *sx, int *sy);
-void Window_GetSize (HWND hwnd, int *sx, int *sy);
+void Window_GetClientSize(HWND hwnd, int* sx, int* sy);
+void Window_GetSize(HWND hwnd, int* sx, int* sy);
 
 extern GRAPH graph; // Objeto para el modo grafico
 extern MINPUT input; //Objeto para DirectInput, Funciones para teclado
@@ -138,5 +138,8 @@ extern PGAMEINFO gameinf;
 extern KEYS keys[2];
 extern int globalmode;
 extern BOOL goback;
+
+class CONFIGDATA;
+extern CONFIGDATA config;
 
 #endif

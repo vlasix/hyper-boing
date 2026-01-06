@@ -29,10 +29,10 @@ public:
     SDL_Texture* bmp;
     int sx, sy;
     int xoff, yoff; //desplazamiento relativo
-    GRAPH * graph;
+    GRAPH* graph;
 
-    void Init(GRAPH *gr, char file[], int offx=0, int offy=0);
-    void Release ( void );
+    void Init(GRAPH* gr, char file[], int offx = 0, int offy = 0);
+    void Release(void);
 };
 
 
@@ -47,38 +47,39 @@ public:
 ********************************************************/
 class GRAPH
 {
-public:	
+public:
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Texture* backBuffer;
     int mode;
 
-    int Init ( const char* title, int _mode );
-    int InitNormal ( const char* title );
-    int InitEx ( const char* title );
-    void Release ();
+    int Init(const char* title, int _mode);
+    int InitNormal(const char* title);
+    int InitEx(const char* title);
+    void Release();
 
 
-    void Draw ( SPRITE* spr, int x, int y );
-    void DrawScaled ( SPRITE* spr, int x, int y, int w, int h ); // NEW
-    void Draw ( SDL_Texture* texture, RECT* srcRect, int x, int y );
-    void DrawClipped ( SDL_Texture* texture, RECT* srcRect, int x, int y );
-    void DrawClipped ( SPRITE* spr, int x, int y );
-    void Draw ( BMNUMFONT* font, int num, int x, int y );
-    void Draw ( BMNUMFONT* font, char cad[], int x, int y );
-    void DrawClipped ( BMNUMFONT* font, char cad[], int x, int y );
+    void Draw(SPRITE* spr, int x, int y);
+    void DrawScaled(SPRITE* spr, int x, int y, int w, int h); // NEW
+    void Draw(SDL_Texture* texture, RECT* srcRect, int x, int y);
+    void DrawClipped(SDL_Texture* texture, RECT* srcRect, int x, int y);
+    void DrawClipped(SPRITE* spr, int x, int y);
+    void Draw(BMNUMFONT* font, int num, int x, int y);
+    void Draw(BMNUMFONT* font, char cad[], int x, int y);
+    void DrawClipped(BMNUMFONT* font, char cad[], int x, int y);
 
     void Flip();
+    void SetFullScreen(bool fs);
 
     void Text(const char texto[], int x, int y);
     void Rectangle(int a, int b, int c, int d);
     //void MoveTo(int x, int y);
     //void LineTo(int x, int y);
 
-    HRESULT CopyBitmap ( SDL_Texture* texture, SDL_Surface* surface, int x, int y, int dx, int dy );
-    void LoadBitmap ( SPRITE* spr, const char* szBitmap );
-    Uint32 ColorMatch ( SDL_Surface* surface, Uint32 rgb );
-    HRESULT SetColorKey ( SDL_Texture* texture, Uint32 rgb );
+    HRESULT CopyBitmap(SDL_Texture* texture, SDL_Surface* surface, int x, int y, int dx, int dy);
+    void LoadBitmap(SPRITE* spr, const char* szBitmap);
+    Uint32 ColorMatch(SDL_Surface* surface, Uint32 rgb);
+    HRESULT SetColorKey(SDL_Texture* texture, Uint32 rgb);
     //HRESULT SetColorKey(IDirectDrawSurface7 * pdds, COLORREF rgb);
     //DWORD ColorMatch(IDirectDrawSurface7 * pdds, COLORREF rgb);
 };

@@ -1,5 +1,6 @@
 #include "pang.h"
 #include "configscreen.h"
+#include "configdata.h"
 #include <SDL.h>
 
 extern GRAPH graph;
@@ -290,8 +291,19 @@ void PCONFIGSCREEN::SaveConfiguration()
         gameinf.keys[player].SetShoot(tempKeys[player][2]);
     }
     
-    // Guardar el modo de renderizado
+    // Guardar el modo de renderizado y aplicarlo inmediatamente
+    int oldMode = globalmode;
     globalmode = tempRenderMode;
+    
+    // Aplicar el cambio de fullscreen si cambió
+    if (oldMode != globalmode)
+    {
+        bool isFullscreen = (globalmode == RENDERMODE_EXCLUSIVE);
+        graph.SetFullScreen(isFullscreen);
+    }
+    
+    // Guardar la configuración a disco
+    config.Save();
 }
 
 void PCONFIGSCREEN::CancelConfiguration()
