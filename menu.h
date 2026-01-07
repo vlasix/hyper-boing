@@ -32,6 +32,7 @@ public:
 
     void * MoveAll();
     int DrawAll();
+    virtual void DrawDebugOverlay();
     int Release();
 };
 

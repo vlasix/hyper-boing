@@ -4,6 +4,10 @@
 #include "app.h"
 #include "graph.h"
 
+// Forward declaration o incluir configdata.h
+class CONFIGDATA;
+extern CONFIGDATA config;
+
 /********************************************************
   clase PCONFIGSCREEN
 
@@ -38,8 +42,9 @@ public:
     int DrawAll ();
     int Release ();
 
-    void DrawUI ();
-    void DrawText ( const char* text, int x, int y, bool selected = false );
+    void DrawUI();
+    virtual void DrawDebugOverlay();
+    void DrawText(const char* text, int x, int y, bool selected = false);
     void DrawKeyName ( SDL_Scancode key, int x, int y );
     void SaveConfiguration ();
     void CancelConfiguration ();

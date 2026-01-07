@@ -83,6 +83,11 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
                      screen = new PCONFIGSCREEN();
                      screen->Init();
                  }
+                 if(e.key.keysym.sym == SDLK_TAB)
+                 {
+                     // Toggle debug mode
+                     PAPP::debugMode = !PAPP::debugMode;
+                 }
             }
         }
 

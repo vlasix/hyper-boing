@@ -490,7 +490,7 @@ void* PSCENE::MoveAll()
         cont++; //Frames virtuales por segundo
 
 //input.ReadKeyboard();
-/*gameinf.player[PLAYER1]->score = 100;
+ /*gameinf.player[PLAYER1]->score = 100;
 if(input.Key((UINT)'S')) Win();*/
     if ( gameover )
     {
@@ -775,6 +775,64 @@ void PSCENE::DrawMark()
     graph.Draw(&bmp.mark[0], MAX_X + 1, MAX_Y + 1);
 }
 
+void PSCENE::DrawDebugOverlay()
+{
+    if (!debugMode) return;
+
+    PAPP::DrawDebugOverlay(); // Base: FPS, pause state
+
+    char cadena[256];
+    int y = 80; // Empezar después del overlay base
+    int lineHeight = 20;
+    
+    // Información del jugador
+    if (gameinf.player[PLAYER1])
+    {
+        sprintf(cadena, "P1: Score=%d Lives=%d Shoots=%d", 
+                gameinf.player[PLAYER1]->score,
+                gameinf.player[PLAYER1]->lives,
+                gameinf.player[PLAYER1]->numshoots);
+        graph.Text(cadena, 20, y);
+        y += lineHeight;
+    }
+    
+    // Información de la primera pelota (si existe)
+    MLISTNODE* pt = lsballs.GetFirstNode();
+    if (pt)
+    {
+        BALL* ptb = (BALL*)pt->data;
+        sprintf(cadena, "Ball: y=%.1f t=%.1f dirx=%d diry=%d", 
+                ptb->y, ptb->t, ptb->dirx, ptb->diry);
+        graph.Text(cadena, 20, y);
+        y += lineHeight;
+        
+        sprintf(cadena, "Ball: size=%d top=%d diameter=%d", 
+                ptb->size, ptb->top, ptb->diameter);
+        graph.Text(cadena, 20, y);
+        y += lineHeight;
+    }
+    
+    // Número de objetos en pantalla
+    sprintf(cadena, "Objects: Balls=%d Shoots=%d Floors=%d", 
+            lsballs.GetDimension(),
+            lsshoots.GetDimension(),
+            lsfloor.GetDimension());
+    graph.Text(cadena, 20, y);
+    y += lineHeight;
+    
+    // Información del stage
+    sprintf(cadena, "Stage: %d  Time=%d  Timeline=%d", 
+            stage->id, time, timeline);
+    graph.Text(cadena, 20, y);
+    y += lineHeight;
+    
+    // Estado del juego
+    sprintf(cadena, "GameOver=%s  LevelClear=%s", 
+            gameover ? "YES" : "NO",
+            levelclear ? "YES" : "NO");
+    graph.Text(cadena, 20, y);
+}
+
 int PSCENE::DrawAll()
 {
     MLISTNODE* pt = lsballs.GetFirstNode();
@@ -831,6 +889,10 @@ int PSCENE::DrawAll()
     }
 
     if ( pstageclear ) pstageclear->DrawAll();
+    
+    // Dibujar información de debug si está activada
+    DrawDebugOverlay(); // Base: FPS, pause state
+    
     graph.Flip();
 
     static int tck = 0, lasttck = 0, cont = 0;

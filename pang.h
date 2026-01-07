@@ -140,6 +140,5 @@ extern int globalmode;
 extern BOOL goback;
 
 class CONFIGDATA;
-extern CONFIGDATA config;
 
 #endif

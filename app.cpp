@@ -1,12 +1,14 @@
 #include <windows.h>
 #include <SDL.h>
 #include "pang.h"
+#include <stdio.h>
 
 // Inicializar variables estáticas
 SPRITE* PAPP::sharedBackground = nullptr;
 int PAPP::scrollX = 0;
 int PAPP::scrollY = 0;
 bool PAPP::backgroundInitialized = false;
+bool PAPP::debugMode = false;
 
 PAPP::PAPP()
 {		
@@ -26,6 +28,36 @@ int PAPP::Init()
     fpsv = 0;
     
     return 1;
+}
+
+void PAPP::DrawDebugOverlay()
+{
+    if (!debugMode) return;
+    
+    char cadena[256];
+    int y = 20;
+    int lineHeight = 20;
+    int width = 400;
+    int height = 300;
+    
+    // Fondo semi-transparente para el texto de debug
+    SDL_SetRenderDrawBlendMode(graph.renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(graph.renderer, 0, 0, 0, 180);
+    SDL_Rect bgRect = {10, 10, width, height};
+    SDL_RenderFillRect(graph.renderer, &bgRect);
+    SDL_SetRenderDrawBlendMode(graph.renderer, SDL_BLENDMODE_NONE);
+    
+    // FPS (información común para todas las pantallas)
+    sprintf(cadena, "FPS = %d  FPSVIRT = %d", fps, fpsv);
+    graph.Text(cadena, 20, y);
+    y += lineHeight;
+    
+    // Estado de pausa
+    sprintf(cadena, "Paused = %s  Active = %s", 
+            pause ? "YES" : "NO",
+            active ? "YES" : "NO");
+    graph.Text(cadena, 20, y);
+    y += lineHeight;
 }
 
 void PAPP::InitSharedBackground()

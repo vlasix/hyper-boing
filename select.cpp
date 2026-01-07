@@ -78,47 +78,11 @@ void PSELECT::DrawSelect()
     graph.Draw(&bmp.seltext[PLAYER2], 350 , 210+bmp.select[PLAYER2].sy + 10);
 }
 
-void PSELECT::DrawBack()
-{
-    int i, j;
-    RECT rc, rcbx, rcby, rcq;	
-    
-    rc.left = xb;
-    rc.right = bmp.back.sx;
-    rc.top = 0;
-    rc.bottom = yb;
-    
-
-    rcbx.left = 0;
-    rcbx.right = xb;
-    rcbx.top = 0;
-    rcbx.bottom = yb;
-
-    rcby.left = xb;
-    rcby.right = bmp.back.sx;
-    rcby.top = yb;
-    rcby.bottom = bmp.back.sy;
-
-    rcq.left = 0;
-    rcq.right = xb;
-    rcq.top = yb;
-    rcq.bottom = bmp.back.sy;
-    
-
-    for(i=0;i<4;i++)
-        for(j=0;j<5;j++)
-        {
-            graph.Draw(bmp.back.bmp, &rc, bmp.back.sx*i, (bmp.back.sy*j)+bmp.back.sy-yb);
-            graph.Draw(bmp.back.bmp, &rcbx, (bmp.back.sx*i)+rc.right-rc.left, (bmp.back.sy*j)+bmp.back.sy - yb);
-            graph.Draw(bmp.back.bmp, &rcby, bmp.back.sx*i, bmp.back.sy*j);
-            graph.Draw(bmp.back.bmp, &rcq, (bmp.back.sx*i)+bmp.back.sx-xb, bmp.back.sy*j);
-        }
-}
 
 int PSELECT::DrawAll()
 {
-    
-    DrawBack();
+    PAPP::DrawScrollingBackground ();
+    //DrawBack();
     DrawSelect();
 
     graph.Flip();
@@ -136,7 +100,8 @@ void * PSELECT::MoveAll()
 
     if(initdelay>0) initdelay--;
 
-    //input.ReadKeyboard();
+    // Actualizar el fondo scrolling compartido
+    PAPP::UpdateScrollingBackground ();
 
     if(input.Key( SDL_SCANCODE_ESCAPE ))
         return new PMENU;
@@ -152,7 +117,8 @@ void * PSELECT::MoveAll()
     }
     else
         if(!initdelay)
-            if(input.Key(gameinf.keys[PLAYER1].shoot))
+			// Enter or shoot key to select
+            if( input.Key ( SDL_SCANCODE_RETURN ) || input.Key(gameinf.keys[PLAYER1].shoot))
             {
                 gameinf.player[PLAYER1] = new PLAYER(PLAYER1);
                 if(option == PLAYER2)

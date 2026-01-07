@@ -45,6 +45,9 @@ public:
 	static SPRITE* sharedBackground;
 	static int scrollX, scrollY;
 	static bool backgroundInitialized;
+	
+	// Debug mode global
+	static bool debugMode;
 
 	void * DoTick();
 	void DoPause();
@@ -67,6 +70,9 @@ public:
 	static void UpdateScrollingBackground();
 	static void DrawScrollingBackground();
 	static void ReleaseSharedBackground();
+	
+	// Debug overlay - virtual para que cada screen pueda personalizarlo
+	virtual void DrawDebugOverlay();
 
 };
 

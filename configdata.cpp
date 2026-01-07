@@ -18,7 +18,7 @@ CONFIGDATA::~CONFIGDATA()
 
 void CONFIGDATA::InitPath()
 {
-    char *basePath = SDL_GetPrefPath("Pang");
+    char *basePath = SDL_GetPrefPath("Savioret", "Pang");
     if (basePath) {
         snprintf(configPath, sizeof(configPath), "%spang_config.dat", basePath);
         SDL_free(basePath);

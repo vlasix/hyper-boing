@@ -108,6 +108,7 @@ public:
     void Draw(FLOOR *fl);
     void DrawScore();
     void DrawMark();
+    virtual void DrawDebugOverlay();
 
     void * MoveAll();
     void CheckSequence();

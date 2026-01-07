@@ -2,6 +2,7 @@
 #include "configscreen.h"
 #include "configdata.h"
 #include <SDL.h>
+#include <stdio.h>
 
 extern GRAPH graph;
 extern MINPUT input;
@@ -177,6 +178,9 @@ int PCONFIGSCREEN::DrawAll()
     // Dibujar la interfaz de configuración encima
     DrawUI();
     
+    // Dibujar información de debug si está activada
+    DrawDebugOverlay();
+    
     graph.Flip();
     
     return 1;
@@ -253,6 +257,21 @@ void PCONFIGSCREEN::DrawUI()
         DrawText("Flechas: Navegar  |  ENTER: Cambiar tecla", 80, y, false);
         DrawText("F1: Guardar  |  ESC: Cancelar", 160, y + 15, false);
     }
+}
+
+void PCONFIGSCREEN::DrawDebugOverlay()
+{
+    if (!debugMode) return;
+    
+    PAPP::DrawDebugOverlay(); // Base: FPS, pause state
+        
+    // Debug específico de la pantalla de configuración
+    char cadena[256];
+    int y = 80; // Después del overlay base
+    
+    sprintf(cadena, "Selected = %d  State = %d  WaitingKey = %d", 
+            selectedOption, state, waitingForKey);
+    graph.Text(cadena, 20, y);
 }
 
 void PCONFIGSCREEN::DrawText(const char* text, int x, int y, bool selected)

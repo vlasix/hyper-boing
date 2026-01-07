@@ -148,9 +148,31 @@ int PMENU::DrawAll()
     DrawTitle();
     DrawMenu();
     
+    // Dibujar información de debug si está activada
+    DrawDebugOverlay(); // Base: FPS, pause state
+    
     graph.Flip();
     
     return 1;
+}
+
+void PMENU::DrawDebugOverlay()
+{
+    if (!debugMode) return;
+    
+    PAPP::DrawDebugOverlay(); // Base: FPS, pause state
+    
+    // Debug específico del menú
+    char cadena[256];
+    int y = 80; // Después del overlay base
+    int lineHeight = 20;
+    
+    sprintf(cadena, "Title Y = %d  Selected = %d", this->y, selectedOption);
+    graph.Text(cadena, 20, y);
+    y += lineHeight;
+    
+    sprintf(cadena, "Scroll X=%d Y=%d", PAPP::scrollX, PAPP::scrollY);
+    graph.Text(cadena, 20, y);
 }
 
 void * PMENU::MoveAll()
