@@ -1,41 +1,48 @@
-#ifndef SELECT_H_
-#define SELECT_H_
+#pragma once
 
-typedef struct PSLCBITMAPS
+#include "app.h"
+#include "graph.h"
+
+/**
+ * SelectBitmaps struct
+ * Contains sprites for the player selection screen.
+ */
+struct SelectBitmaps
 {
-    SPRITE back;
-    SPRITE select[2];
-    SPRITE seltext[2];
-    SPRITE mode;
-}PSELECTBITMAPS;
-
-/*******************************************************
-    clase PSELECT
-
-    Clase Hija de PAPP, es un modulo del juego.
-
-    Es el menu de seleccion de numero de jugadores.
-*********************************************************/
-class PSELECT : public PAPP
-{
-public:
-    
-    PSELECTBITMAPS bmp;
-    int xb, yb; //x e y del background
-    int option;
-
-    int delay; // tiempo entre el cambio de una opcion a otra
-    int count; // contador para el delay
-    int initdelay; // para que no pulse directamente
-    
-    int Init();
-    int InitBitmaps();
-    void DrawSelect();
-    void DrawBack();	
-
-    void * MoveAll();
-    int DrawAll();
-    int Release();
+    Sprite back;
+    Sprite select[2];
+    Sprite selText[2];
+    Sprite mode;
 };
 
-#endif
+/**
+ * SelectSync class
+ *
+ * This module handles the player selection screen (1 Player or 2 Players).
+ * It manages the visual selection feedback and transitioning to the game.
+ * Inherits from App.
+ */
+class SelectSync : public App
+{
+private:
+    SelectBitmaps bmp;
+    int xb, yb; // background x and y
+    int option;
+
+    int delay; // time between option changes
+    int delayCounter;
+    int initDelay; // to prevent immediate selection
+
+public:
+    SelectSync();
+    virtual ~SelectSync() {}
+
+    int init() override;
+    int initBitmaps();
+    void drawSelect();
+    void drawBack();	
+
+    void* moveAll() override;
+    int drawAll() override;
+    int release() override;
+};

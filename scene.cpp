@@ -1,903 +1,795 @@
-/*#include <windows.h>*/
-#include <stdio.h>
-//#include "sprite.h"
+#include <cstdio>
+#include <cstring>
 #include "pang.h"
 #include <SDL.h>
 #include <SDL_render.h>
 #include <SDL_image.h>
 
+#ifndef MAX_PATH
+#define MAX_PATH 260
+#endif
 
-
-PSCENE::PSCENE(PSTAGE* stg, PSTAGECLEAR* pstgclr)
+Scene::Scene(Stage* stg, StageClear* pstgclr)
 {
-    gameinf.menu = FALSE;
+    gameinf.isMenu() = false;
     stage = stg;
-    pstageclear = pstgclr;
-    if ( pstageclear ) pstageclear->scene = this;
+    pStageClear = pstgclr;
+    if (pStageClear) pStageClear->scene = this;
 }
 
-int PSCENE::Init()
+int Scene::init()
 {
-    // Llamar a la inicialización base
-    PAPP::Init();
+    App::init();
 
     char cadena[MAX_PATH];
 
     change = 0;
-    levelclear = FALSE;
-    gameover = FALSE;
-    gameovercount = -2;
-    timeline = 0;
-    dsecond = 0;
-    time = stage->timelimit;
+    levelClear = false;
+    gameOver = false;
+    gameOverCount = -2;
+    timeLine = 0;
+    dSecond = 0;
+    timeRemaining = stage->timelimit;
 
-    gameinf.player[PLAYER1]->x = stage->xpos[PLAYER1];
-    if ( gameinf.player[PLAYER2] )
-        gameinf.player[PLAYER2]->x = stage->xpos[PLAYER2];
+    gameinf.getPlayers()[PLAYER1]->setX((float)stage->xpos[PLAYER1]);
+    if (gameinf.getPlayers()[PLAYER2])
+        gameinf.getPlayers()[PLAYER2]->setX((float)stage->xpos[PLAYER2]);
 
     CloseMusic();
 
-/*=============================================*/
+    initBitmaps();
 
-    InitBitmaps();
-
-    strcpy(cadena, "music\\");
-    strcat(cadena, stage->music);
+    std::snprintf(cadena, sizeof(cadena), "music\\%s", stage->music);
     OpenMusic(cadena);
     PlayMusic();
     return 1;
 }
 
-/************************************************************
-      InitBitmaps()
-
-    Carga e inicia todos los bitmaps necesarios en este
-    modulo del juego (definidos en PSCNBITMAPS).
-*************************************************************/
-int PSCENE::InitBitmaps()
+/**
+ * Loads all the necessary bitmaps for the game scene.
+ * This includes balls, background, weapons, and UI elements.
+ */
+int Scene::initBitmaps()
 {
     int i = 0;
     char cadena[MAX_PATH];
 
-    // offset de las letras en los bitmaps correspondientes
     int offs[10] = { 0, 22, 44, 71, 93, 120, 148, 171, 198, 221 };
     int offs1[10] = { 0, 13, 18, 31, 44, 58, 70, 82, 93, 105 };
     int offs2[10] = { 0, 49, 86, 134, 187, 233, 277, 327, 374, 421 };
 
-    bmp.redball[0].Init(&graph, "graph\\ball-rd1.png");
-    bmp.redball[1].Init(&graph, "graph\\ball-rd2.png");
-    bmp.redball[2].Init(&graph, "graph\\ball-rd3.png");
-    bmp.redball[3].Init(&graph, "graph\\ball-rd4.png");
-    for ( i = 0;i < 4;i++ )
-        graph.SetColorKey(bmp.redball[i].bmp, RGB(0, 255, 0));
+    bmp.redball[0].init(&graph, "graph\\ball-rd1.png");
+    bmp.redball[1].init(&graph, "graph\\ball-rd2.png");
+    bmp.redball[2].init(&graph, "graph\\ball-rd3.png");
+    bmp.redball[3].init(&graph, "graph\\ball-rd4.png");
+    for (i = 0; i < 4; i++)
+        graph.setColorKey(bmp.redball[i].getBmp(), 0x00FF00);
 
-    bmp.miniplayer[PLAYER1].Init(&graph, "graph\\miniplayer1.png");
-    bmp.miniplayer[PLAYER2].Init(&graph, "graph\\miniplayer2.png");
-    graph.SetColorKey(bmp.miniplayer[PLAYER1].bmp, RGB(0, 255, 0));
-    graph.SetColorKey(bmp.miniplayer[PLAYER2].bmp, RGB(0, 255, 0));
+    bmp.miniplayer[PLAYER1].init(&graph, "graph\\miniplayer1.png");
+    bmp.miniplayer[PLAYER2].init(&graph, "graph\\miniplayer2.png");
+    graph.setColorKey(bmp.miniplayer[PLAYER1].getBmp(), 0x00FF00);
+    graph.setColorKey(bmp.miniplayer[PLAYER2].getBmp(), 0x00FF00);
 
-    bmp.lives[PLAYER1].Init(&graph, "graph\\lives1p.png");
-    bmp.lives[PLAYER2].Init(&graph, "graph\\lives2p.png");
-    graph.SetColorKey(bmp.lives[PLAYER1].bmp, RGB(0, 255, 0));
-    graph.SetColorKey(bmp.lives[PLAYER2].bmp, RGB(0, 255, 0));
+    bmp.lives[PLAYER1].init(&graph, "graph\\lives1p.png");
+    bmp.lives[PLAYER2].init(&graph, "graph\\lives2p.png");
+    graph.setColorKey(bmp.lives[PLAYER1].getBmp(), 0x00FF00);
+    graph.setColorKey(bmp.lives[PLAYER2].getBmp(), 0x00FF00);
 
-    bmp.shoot[0].Init(&graph, "graph\\weapon1.png");
-    bmp.shoot[1].Init(&graph, "graph\\weapon2.png");
-    bmp.shoot[2].Init(&graph, "graph\\weapon3.png");
-    for ( i = 0; i < 3;i++ )
-        graph.SetColorKey(bmp.shoot[i].bmp, RGB(0, 255, 0));
+    bmp.shoot[0].init(&graph, "graph\\weapon1.png");
+    bmp.shoot[1].init(&graph, "graph\\weapon2.png");
+    bmp.shoot[2].init(&graph, "graph\\weapon3.png");
+    for (i = 0; i < 3; i++)
+        graph.setColorKey(bmp.shoot[i].getBmp(), 0x00FF00);
 
-    bmp.mark[0].Init(&graph, "graph\\ladrill1.png");
-    bmp.mark[1].Init(&graph, "graph\\ladrill1u.png");
-    bmp.mark[2].Init(&graph, "graph\\ladrill1d.png");
-    bmp.mark[3].Init(&graph, "graph\\ladrill1l.png");
-    bmp.mark[4].Init(&graph, "graph\\ladrill1r.png");
+    bmp.mark[0].init(&graph, "graph\\ladrill1.png");
+    bmp.mark[1].init(&graph, "graph\\ladrill1u.png");
+    bmp.mark[2].init(&graph, "graph\\ladrill1d.png");
+    bmp.mark[3].init(&graph, "graph\\ladrill1l.png");
+    bmp.mark[4].init(&graph, "graph\\ladrill1r.png");
 
-    for ( i = 0; i < 5;i++ )
-        graph.SetColorKey(bmp.mark[i].bmp, RGB(0, 255, 0));
+    for (i = 0; i < 5; i++)
+        graph.setColorKey(bmp.mark[i].getBmp(), 0x00FF00);
 
-    bmp.floor[0].Init(&graph, "graph\\floor1.png");
-    graph.SetColorKey(bmp.floor[0].bmp, RGB(0, 255, 0));
-    bmp.floor[1].Init(&graph, "graph\\floor2.png");
-    graph.SetColorKey(bmp.floor[1].bmp, RGB(0, 255, 0));
+    bmp.floor[0].init(&graph, "graph\\floor1.png");
+    graph.setColorKey(bmp.floor[0].getBmp(), 0x00FF00);
+    bmp.floor[1].init(&graph, "graph\\floor2.png");
+    graph.setColorKey(bmp.floor[1].getBmp(), 0x00FF00);
 
-    bmp.time.Init(&graph, "graph\\tiempo.png");
-    graph.SetColorKey(bmp.time.bmp, RGB(255, 0, 0));
+    bmp.time.init(&graph, "graph\\tiempo.png");
+    graph.setColorKey(bmp.time.getBmp(), 0xFF0000);
 
-    bmp.gameover.Init(&graph, "graph\\gameover.png", 16, 16);
-    graph.SetColorKey(bmp.gameover.bmp, RGB(0, 255, 0));
+    bmp.gameover.init(&graph, "graph\\gameover.png", 16, 16);
+    graph.setColorKey(bmp.gameover.getBmp(), 0x00FF00);
 
-    bmp.continu.Init(&graph, "graph\\continue.png", 16, 16);
-    graph.SetColorKey(bmp.continu.bmp, RGB(0, 255, 0));
+    bmp.continu.init(&graph, "graph\\continue.png", 16, 16);
+    graph.setColorKey(bmp.continu.getBmp(), 0x00FF00);
 
-    strcpy(cadena, "graph\\");
-    strcat(cadena, stage->back);
-    bmp.back.Init(&graph, cadena, 16, 16);
-    graph.SetColorKey(bmp.back.bmp, RGB(0, 255, 0));
+    std::snprintf(cadena, sizeof(cadena), "graph\\%s", stage->back);
+    bmp.back.init(&graph, cadena, 16, 16);
+    graph.setColorKey(bmp.back.getBmp(), 0x00FF00);
 
-    /* inicio de las fuentes numericas */
-    bmp.fontnum[0].Init(&graph, "graph\\fontnum1.png", 0, 0);
-    graph.SetColorKey(bmp.fontnum[0].bmp, RGB(255, 0, 0));
-    fontnum[0].Init(&bmp.fontnum[0]);
-    fontnum[0].SetValues(offs);
-    bmp.fontnum[1].Init(&graph, "graph\\fontnum2.png", 0, 0);
-    graph.SetColorKey(bmp.fontnum[1].bmp, RGB(255, 0, 0));
-    fontnum[1].Init(&bmp.fontnum[1]);
-    fontnum[1].SetValues(offs1);
-    bmp.fontnum[2].Init(&graph, "graph\\fontnum3.png", 0, 0);
-    graph.SetColorKey(bmp.fontnum[2].bmp, RGB(0, 255, 0));
-    fontnum[2].Init(&bmp.fontnum[2]);
-    fontnum[2].SetValues(offs2);
+    bmp.fontnum[0].init(&graph, "graph\\fontnum1.png", 0, 0);
+    graph.setColorKey(bmp.fontnum[0].getBmp(), 0xFF0000);
+    fontNum[0].init(&bmp.fontnum[0]);
+    fontNum[0].setValues(offs);
+    bmp.fontnum[1].init(&graph, "graph\\fontnum2.png", 0, 0);
+    graph.setColorKey(bmp.fontnum[1].getBmp(), 0xFF0000);
+    fontNum[1].init(&bmp.fontnum[1]);
+    fontNum[1].setValues(offs1);
+    bmp.fontnum[2].init(&graph, "graph\\fontnum3.png", 0, 0);
+    graph.setColorKey(bmp.fontnum[2].getBmp(), 0x00FF00);
+    fontNum[2].init(&bmp.fontnum[2]);
+    fontNum[2].setValues(offs2);
 
     return 1;
 }
 
-/*****************************************************************/
-/*******	FUNCIONES DE MODIFICACION Y CONSULTA        **********/
-/*****************************************************************/
-
-
-/************************************************************
-      AddBall()
-
-    Añade una Pelota a la lista de pelotas en pantalla
-*************************************************************/
-void PSCENE::AddBall(int x, int y, int size, int top, int dirx, int diry, int id)
+void Scene::addBall(int x, int y, int size, int top, int dirX, int dirY, int id)
 {
-    BALL* ball = new BALL(this, x, y, size, top, dirx, diry, id);
-
-    lsballs.Insert(( MLISTDATA* )ball);
+    Ball* ball = new Ball(this, x, y, size, dirX, dirY, top, id);
+    lsBalls.insert((MListData*)ball);
 }
 
-/************************************************************
-      AddItem()
-
-    Añade una Pelota a la lista de pelotas en pantalla
-    ## OPCION NO IMPLEMENTADA ##
-*************************************************************/
-
-void PSCENE::AddItem(int x, int y, int id)
+void Scene::addItem(int x, int y, int id)
 {
-    ITEM* item = new ITEM(x, y, id);
-
-    lsitems.Insert(( MLISTDATA* )item);
+    Item* item = new Item(x, y, id);
+    lsItems.insert((MListData*)item);
 }
 
-/************************************************************
-      AddFloor()
-
-    Añade un bloque/plataforma a la lista de plataformas
-    en pantalla
-*************************************************************/
-void PSCENE::AddFloor(int x, int y, int id)
+void Scene::addFloor(int x, int y, int id)
 {
-    FLOOR* floor = new FLOOR(this, x, y, id);
-
-    lsfloor.Insert(( MLISTDATA* )floor);
+    Floor* floor = new Floor(this, x, y, id);
+    lsFloor.insert((MListData*)floor);
 }
 
-/************************************************************
-      AddShoot()
-
-    Añade un disparo en pantalla, dado un jugador.
-*************************************************************/
-void PSCENE::AddShoot(PLAYER* pl)
+void Scene::addShoot(Player* pl)
 {
-    SHOOT* shoot = new SHOOT(this, pl);
-
-    lsshoots.Insert(( MLISTDATA* )shoot);
+    Shoot* shootInstance = new Shoot(this, pl);
+    lsShoots.insert((MListData*)shootInstance);
 }
 
-/************************************************************
-      Shoot()
-
-    Esta funcion comprueba si un jugador puede disparar
-    Y en caso afirmativo lo añade a la pantalla.
-*************************************************************/
-void PSCENE::Shoot(PLAYER* pl)
+void Scene::shoot(Player* pl)
 {
-    if ( pl->CanShoot() )
+    if (pl->canShoot())
     {
-        pl->Shoot();
-        AddShoot(pl);
+        pl->shoot();
+        addShoot(pl);
     }
 }
 
-/************************************************************
-      DivideBall()
-
-    Crea dos Pelotas a partir de una.
-*************************************************************/
-int PSCENE::DivideBall(BALL* ball)
+/**
+ * Handles the logic when a ball is hit. It creates two smaller
+ * balls if possible, or removes the ball if it's already the
+ * smallest size. It also grants points to the player.
+ */
+int Scene::divideBall(Ball* ball)
 {
-    BALL* ball1;
-    BALL* ball2;
+    Ball* ball1;
+    Ball* ball2;
     int res = 1;
 
-    if ( ball->size < 3 )
+    if (ball->size < 3)
     {
-        ball1 = new BALL(this, ball);
-        ball2 = new BALL(this, ball);
-        ball1->SetDirX(-1);
-        ball2->SetDirX(1);
+        ball1 = new Ball(this, ball);
+        ball2 = new Ball(this, ball);
+        ball1->setDirX(-1);
+        ball2->setDirX(1);
 
-        lsballs.Insert(( MLISTDATA* )ball1);
-        lsballs.Insert(( MLISTDATA* )ball2);
+        lsBalls.insert((MListData*)ball1);
+        lsBalls.insert((MListData*)ball2);
 
         res = 0;
     }
-    else // la pelota podria ser la ultima ==> WIN
+    else
     {
-        if ( lsballs.GetDimension() == 1 && !stage->itemsleft )
+        if (lsBalls.getDimension() == 1 && !stage->itemsleft)
         {
-            Win();
+            win();
         }
     }
 
-    lsballs.DeleteNode(lsballs.Find(ball));
+    lsBalls.deleteNode(lsBalls.find(ball));
 
     return res;
 }
 
-/************************************************************
-      ObjectScore()
-
-    Devuelve los puntos asociados a un identificador.
-    En nuestro caso usaremos el tamaño de la pelota para
-    sumar mas o menos puntos.
-*************************************************************/
-int PSCENE::ObjectScore(int id)
+int Scene::objectScore(int id)
 {
     return 1000 / id;
 }
 
-/************************************************************
-      Win()
-
-    Activa el "flag" de haber superado el nivel, y reproduce
-    una musica apropiada.
-    Inmediatamente crea una instancia de PSTAGELCEAR para
-    mostrar una secuencia.
-*************************************************************/
-void PSCENE::Win()
+void Scene::win()
 {
     CloseMusic();
     OpenMusic("music\\win.mid");
     PlayMusic();
-    levelclear = TRUE;
+    levelClear = true;
 
-    pstageclear = new PSTAGECLEAR(this);
-
+    pStageClear = new StageClear(this);
 }
 
-
-/*****************************************************************/
-/*******	FUNCIONES DE OPERACION Y PROCESADO INTERNO  **********/
-/*****************************************************************/
-
-void PSCENE::CheckColisions()
+void Scene::checkColisions()
 {
+    MListNode* pt;
+    MListNode* ptball = lsBalls.getFirstNode();
+    MListNode* ptshoot;
+    Ball* b;
+    Shoot* sh;
+    Floor* fl;
+    int i;
+    SDL_Point col;
 
-    MLISTNODE* pt; //puntero para recorrer las listas
-    MLISTNODE* ptball = lsballs.GetFirstNode();
-    MLISTNODE* ptshoot;
-    BALL* b;
-    SHOOT* sh;
-    FLOOR* fl;
-    int i, side = 0;
-    POINT col; // colision
-
-
-    while ( ptball ) /* COLISIONES DE LA PELOTA */
+    while (ptball)
     {
-        b = ( BALL* )ptball->data;
+        b = (Ball*)ptball->data;
 
-        /* colisiones  PELOTA-DISPARO */
-        pt = lsshoots.GetFirstNode();
-        while ( pt )
+        pt = lsShoots.getFirstNode();
+        while (pt)
         {
-            sh = ( SHOOT* )pt->data;
-            if ( !b->hit && !sh->player->dead )
-                if ( b->Colision(sh) )
+            sh = (Shoot*)pt->data;
+            if (!b->hitStatus && !sh->getPlayer()->isDead())
+                if (b->collision(sh))
                 {
-                    sh->Kill();
-                    sh->player->LooseShoot();
-                    sh->player->AddScore(ObjectScore(b->diameter));
-                    b->Kill();
+                    sh->kill();
+                    sh->getPlayer()->looseShoot();
+                    sh->getPlayer()->addScore(objectScore(b->diameter));
+                    b->kill();
                 }
-            pt = lsshoots.GetNextNode(pt);
+            pt = lsShoots.getNextNode(pt);
         }
 
-        /* colisiones  PELOTA-PLATAFORMAS */
-/*		 Estas colisiones requieren un trato especial
-        ya que la pelota puede colisionar con dos puntos
-        de la plataforma(superior y izquierdo por ejemplo)
-        e incluso con dos plataformas a la vez, lo cual,
-        cuando dos plataformas estan unidas y contiguas
-        el comportamiento de la pelota puede no ser el visualmente
-        esperado, por ello se deben tener en cuenta todas las
-        posibilidades
-*/
-
-        FLOORCOLISION flc[2];
+        FloorColision flc[2];
         int cont = 0;
         int moved = 0;
 
-        pt = lsfloor.GetFirstNode();
-        while ( pt )
+        pt = lsFloor.getFirstNode();
+        while (pt)
         {
-            fl = ( FLOOR* )pt->data;
-            col = b->Colision(fl); //side
+            fl = (Floor*)pt->data;
+            col = b->collision(fl);
 
-            if ( col.x )
+            if (col.x)
             {
-                if ( cont ) if ( flc[0].fl == fl )
+                if (cont && flc[0].floor == fl)
                 {
-                    b->SetDirX(-b->dirx);
+                    b->setDirX(-b->dirX);
                     moved = 1;
                     break;
                 }
-                if ( cont < 2 )
+                if (cont < 2)
                 {
-                    flc[cont].col.x = col.x;
-                    flc[cont].fl = fl;
+                    flc[cont].point.x = col.x;
+                    flc[cont].floor = fl;
                     cont++;
                 }
             }
-            if ( col.y )
+            if (col.y)
             {
-                if ( cont ) if ( flc[0].fl == fl )
+                if (cont && flc[0].floor == fl)
                 {
-                    b->SetDirY(-b->diry);
+                    b->setDirY(-b->dirY);
                     moved = 2;
                     break;
                 }
-                if ( cont < 2 )
+                if (cont < 2)
                 {
-                    flc[cont].col.y = col.y;
-                    flc[cont].fl = fl;
+                    flc[cont].point.y = col.y;
+                    flc[cont].floor = fl;
                     cont++;
                 }
             }
-            pt = lsfloor.GetNextNode(pt);
+            pt = lsFloor.getNextNode(pt);
         }
-        if ( cont == 1 ) // solo una colision
+        if (cont == 1)
         {
-            if ( flc[0].col.x )
-                b->SetDirX(-b->dirx);
+            if (flc[0].point.x)
+                b->setDirX(-b->dirX);
             else
-                b->SetDirY(-b->diry);
+                b->setDirY(-b->dirY);
         }
-        else if ( cont > 1 )
+        else if (cont > 1)
         {
-            Decide(b, flc, moved);
+            decide(b, flc, moved);
         }
 
-        /* colisiones  PELOTA-JUGADOR */
-        for ( i = 0;i < 2;i++ )
+        for (i = 0; i < 2; i++)
         {
-            if ( gameinf.player[i] )
-                if ( !gameinf.player[i]->immune && !gameinf.player[i]->IsDead() )
+            if (gameinf.player[i])
+                if (!gameinf.player[i]->isImmune() && !gameinf.player[i]->isDead())
                 {
-                    if ( b->Colision(gameinf.player[i]) )
+                    if (b->collision(gameinf.player[i]))
                     {
-                        gameinf.player[i]->Kill();
-                        gameinf.player[i]->SetFrame(ANIM_DEAD);
+                        gameinf.player[i]->kill();
+                        gameinf.player[i]->setFrame(ANIM_DEAD);
                     }
                 }
         }
 
-        ptball = lsballs.GetNextNode(ptball);
+        ptball = lsBalls.getNextNode(ptball);
     }
 
-    ptshoot = lsshoots.GetFirstNode();
-    while ( ptshoot )
+    ptshoot = lsShoots.getFirstNode();
+    while (ptshoot)
     {
-        sh = ( SHOOT* )ptshoot->data;
+        sh = (Shoot*)ptshoot->data;
 
-        pt = lsfloor.GetFirstNode();
-        while ( pt )
+        pt = lsFloor.getFirstNode();
+        while (pt)
         {
-            fl = ( FLOOR* )pt->data;
-            if ( !sh->dead )
-                if ( sh->Colision(fl) )
+            fl = (Floor*)pt->data;
+            if (!sh->isDead())
+                if (sh->collision(fl))
                 {
-                    sh->Kill();
-                    sh->player->LooseShoot();
+                    sh->kill();
+                    sh->getPlayer()->looseShoot();
                 }
-            pt = lsfloor.GetNextNode(pt);
+            pt = lsFloor.getNextNode(pt);
         }
 
-        ptshoot = lsshoots.GetNextNode(ptshoot);
+        ptshoot = lsShoots.getNextNode(ptshoot);
     }
 }
 
-
-void PSCENE::Decide(BALL* b, FLOORCOLISION* fc, int moved)
+void Scene::decide(Ball* b, FloorColision* fc, int moved)
 {
-
-    // colisiones por el mismo lado en ambos bloques
-    if ( fc[0].col.x == fc[1].col.x || fc[0].col.y == fc[1].col.y )
+    if (fc[0].floor->getId() == fc[1].floor->getId() || fc[0].point.y == fc[1].point.y)
     {
-        if ( fc[0].col.x )  // TOP-DOWN
-            if ( moved != 1 ) b->SetDirX(-b->dirx);
+        if (fc[0].point.x)
+            if (moved != 1) b->setDirX(-b->dirX);
 
-        if ( fc[0].col.y )  // LEFT-RIGHT
-            if ( moved != 2 )b->SetDirY(-b->diry);
+        if (fc[0].point.y)
+            if (moved != 2) b->setDirY(-b->dirY);
         return;
     }
 
-    // colisiones por lados diferentes
-    if ( fc[0].fl->id == fc[1].fl->id ) // si hay dos bloques concatenados
+    if (fc[0].floor->getId() == fc[1].floor->getId())
     {
-        if ( fc[0].fl->id == 0 ) // bloque horizontal concatenado			
-            if ( moved != 2 ) b->SetDirY(-b->diry); //Solo cambia la Y
-        if ( fc[0].fl->id == 1 ) // bloque vertical
-            if ( moved != 1 ) b->SetDirX(-b->dirx); // Solo cambia la X
+        if (fc[0].floor->getId() == 0)
+            if (moved != 2) b->setDirY(-b->dirY);
+        if (fc[0].floor->getId() == 1)
+            if (moved != 1) b->setDirX(-b->dirX);
     }
-    else // si son dos bloques haciendo esquina
+    else
     {
-        if ( fc[0].fl->y == fc[1].fl->y )  // los dos al mismo nivel
-            if ( moved != 2 ) b->SetDirY(-b->diry); //Solo cambia la Y
+        if (fc[0].floor->getY() == fc[1].floor->getY())
+            if (moved != 2) b->setDirY(-b->dirY);
             else
-                if ( moved != 1 ) b->SetDirX(-b->dirx); // Solo cambia la X
+                if (moved != 1) b->setDirX(-b->dirX);
     }
-
 }
 
-void PSCENE::CheckSequence()
+void Scene::checkSequence()
 {
-    POBJECT obj;
+    StageObject obj;
 
     do
     {
-        obj = stage->Pop(timeline);
+        obj = stage->pop(timeLine);
 
-        // aqui se evaluan los diferentes objetos
-        // que podrian aparecer durante el transcurso del nivel
-        switch ( obj.id )
+        switch (obj.id)
         {
         case OBJ_BALL:
-            if ( obj.extra.use )
-                AddBall(obj.x, obj.y, obj.extra.ex1, obj.extra.ex2, obj.extra.ex3, obj.extra.ex4, obj.extra.ex5);
+            if (obj.extra.use)
+                addBall(obj.x, obj.y, obj.extra.ex1, obj.extra.ex2, obj.extra.ex3, obj.extra.ex4, obj.extra.ex5);
             else
-                AddBall(obj.x, obj.y);
+                addBall(obj.x, obj.y);
             break;
         case OBJ_FLOOR:
-            AddFloor(obj.x, obj.y, obj.extra.ex1);
+            addFloor(obj.x, obj.y, obj.extra.ex1);
             break;
         }
-    } while ( obj.id != OBJ_NULL );
+    } while (obj.id != OBJ_NULL);
 }
 
-void* PSCENE::MoveAll()
+void* Scene::moveAll()
 {
-    MLISTNODE* ptprev, * pt = lsballs.GetFirstNode();
-    BALL* ptb;
-    SHOOT* pts;
-    FLOOR* pfl;
+    MListNode* ptprev, * pt = lsBalls.getFirstNode();
+    Ball* ptb;
+    Shoot* pts;
+    Floor* pfl;
     int i, res;
 
     static int tck = 0, lasttck = 0, cont = 0;
     tck = SDL_GetTicks();
-    if ( tck - lasttck > 1000 )
+    if (tck - lasttck > 1000)
     {
         fpsv = cont;
         cont = 0;
         lasttck = tck;
     }
     else
-        cont++; //Frames virtuales por segundo
+        cont++;
 
-//input.ReadKeyboard();
- /*gameinf.player[PLAYER1]->score = 100;
-if(input.Key((UINT)'S')) Win();*/
-    if ( gameover )
+    if (goback)
     {
-        for ( i = 0;i < 2;i++ )
+        goback = false;
+        gameinf.isMenu() = true;
+        return new Menu;
+    }
+
+    if (gameOver)
+    {
+        for (i = 0; i < 2; i++)
         {
-            if ( gameinf.player[i] )
+            if (gameinf.getPlayers()[i])
             {
-                if ( input.Key(gameinf.keys[i].shoot) )
+                if (input.key(gameinf.getKeys()[i].shoot))
                 {
-                    if ( gameovercount >= 0 ) // si CONTINUE...
+                    if (gameOverCount >= 0)
                     {
-                        gameinf.player[PLAYER1]->Init();
-                        if ( gameinf.player[PLAYER2] )
-                            gameinf.player[PLAYER2]->Init();
-                        gameinf.InitStages();
-                        return new PSCENE(stage);
+                        gameinf.getPlayers()[PLAYER1]->init();
+                        if (gameinf.getPlayers()[PLAYER2])
+                            gameinf.getPlayers()[PLAYER2]->init();
+                        gameinf.initStages();
+                        return new Scene(stage);
                     }
                     else
                     {
-                        if ( gameinf.player[PLAYER1] )
+                        if (gameinf.getPlayers()[PLAYER1])
                         {
-                            delete gameinf.player[PLAYER1];
-                            gameinf.player[PLAYER1] = NULL;
+                            delete gameinf.getPlayers()[PLAYER1];
+                            gameinf.getPlayers()[PLAYER1] = nullptr;
                         }
-                        if ( gameinf.player[PLAYER2] )
+                        if (gameinf.getPlayers()[PLAYER2])
                         {
-                            delete gameinf.player[PLAYER2];
-                            gameinf.player[PLAYER2] = NULL;
+                            delete gameinf.getPlayers()[PLAYER2];
+                            gameinf.getPlayers()[PLAYER2] = nullptr;
                         }
-                        return new PMENU;
+                        return new Menu;
                     }
                 }
             }
         }
     }
 
-    if ( !levelclear )
+    if (!levelClear)
     {
-        for ( i = 0;i < 2;i++ )
+        for (i = 0; i < 2; i++)
         {
-            if ( gameinf.player[i] )
+            if (gameinf.getPlayers()[i])
             {
-                if ( !gameinf.player[i]->IsDead() && gameinf.player[i]->playing )
-                    if ( gameinf.player[i] )
-                        if ( input.Key(gameinf.keys[i].shoot) ) { Shoot(gameinf.player[i]); }
-                        else
-                            if ( input.Key(gameinf.keys[i].left) ) gameinf.player[i]->MoveLeft();
-                            else
-                                if ( input.Key(gameinf.keys[i].right) ) gameinf.player[i]->MoveRight();
-                                else gameinf.player[i]->Stop();
-                gameinf.player[i]->Update();
+                if (!gameinf.getPlayers()[i]->isDead() && gameinf.getPlayers()[i]->isPlaying())
+                {
+                    if (input.key(gameinf.getKeys()[i].shoot)) { shoot(gameinf.getPlayers()[i]); }
+                    else if (input.key(gameinf.getKeys()[i].left)) gameinf.getPlayers()[i]->moveLeft();
+                    else if (input.key(gameinf.getKeys()[i].right)) gameinf.getPlayers()[i]->moveRight();
+                    else gameinf.getPlayers()[i]->stop();
+                }
+                gameinf.getPlayers()[i]->update();
             }
         }
-        if ( gameovercount == -2 )
-            if ( gameinf.player[PLAYER1] && !gameinf.player[PLAYER2] )
+        if (gameOverCount == -2)
+        {
+            if (gameinf.getPlayers()[PLAYER1] && !gameinf.getPlayers()[PLAYER2])
             {
-                if ( !gameinf.player[PLAYER1]->playing )
+                if (!gameinf.getPlayers()[PLAYER1]->isPlaying())
                 {
-                    gameover = TRUE;
-                    gameovercount = 10;
+                    gameOver = true;
+                    gameOverCount = 10;
                     CloseMusic();
                     OpenMusic("music\\gameover.mid");
                     PlayMusic();
                 }
             }
-            else
-                if ( !gameinf.player[PLAYER1]->playing && !gameinf.player[PLAYER2]->playing )
+            else if (gameinf.getPlayers()[PLAYER1] && gameinf.getPlayers()[PLAYER2])
+            {
+                if (!gameinf.getPlayers()[PLAYER1]->isPlaying() && !gameinf.getPlayers()[PLAYER2]->isPlaying())
                 {
-                    gameover = TRUE;
-                    gameovercount = 10;
+                    gameOver = true;
+                    gameOverCount = 10;
                     CloseMusic();
                     OpenMusic("music\\gameover.mid");
                     PlayMusic();
                 }
+            }
+        }
     }
     else
     {
-        for ( i = 0;i < 2;i++ )
-            if ( gameinf.player[i] )
-                if ( gameinf.player[i]->playing )
-                    gameinf.player[i]->SetFrame(ANIM_WIN);
+        for (i = 0; i < 2; i++)
+            if (gameinf.getPlayers()[i])
+                if (gameinf.getPlayers()[i]->isPlaying())
+                    gameinf.getPlayers()[i]->setFrame(ANIM_WIN);
     }
 
-    CheckColisions();
+    checkColisions();
 
-    while ( pt )
+    while (pt)
     {
-        ptb = ( BALL* )pt->data;
-        ptb->Move();
-        pt = lsballs.GetNextNode(pt);
-        if ( ptb->hit ) DivideBall(ptb);
+        ptb = (Ball*)pt->data;
+        ptb->move();
+        pt = lsBalls.getNextNode(pt);
+        if (ptb->isHit()) divideBall(ptb);
     }
 
-    pt = lsshoots.GetFirstNode();
-    while ( pt )
+    pt = lsShoots.getFirstNode();
+    while (pt)
     {
-        pts = ( SHOOT* )pt->data;
-        pts->Move();
-        ptprev = pt; // por si hay que borrar
-        pt = lsshoots.GetNextNode(pt);
-        if ( pts->IsDead() )
-            lsshoots.DeleteNode(ptprev);
+        pts = (Shoot*)pt->data;
+        pts->move();
+        ptprev = pt;
+        pt = lsShoots.getNextNode(pt);
+        if (pts->isDead())
+            lsShoots.deleteNode(ptprev);
     }
 
-    pt = lsfloor.GetFirstNode();
-    while ( pt )
+    pt = lsFloor.getFirstNode();
+    while (pt)
     {
-        pfl = ( FLOOR* )pt->data;
-        pfl->Update();
-        pt = lsshoots.GetNextNode(pt);
-        /*if(pts->IsDead())
-            lsshoots.DeleteNode(ptprev);*/
+        pfl = (Floor*)pt->data;
+        pfl->update();
+        pt = lsFloor.getNextNode(pt);
     }
 
-
-    if ( dsecond < 60 ) dsecond++; // decimas de segundos
-    else  // contador de segundos
+    if (dSecond < 60) dSecond++;
+    else
     {
-        dsecond = 0;
-        if ( time > 0 )
+        dSecond = 0;
+        if (timeRemaining > 0)
         {
-            if ( !pstageclear && !gameover ) time--;
+            if (!pStageClear && !gameOver) timeRemaining--;
         }
         else
         {
-            if ( !time )
+            if (timeRemaining == 0)
             {
-                gameover = TRUE;
-                gameovercount = 10;
-                gameinf.player[PLAYER1]->playing = FALSE;
-                if ( gameinf.player[PLAYER2] )
-                    gameinf.player[PLAYER2]->playing = FALSE;
-                time = -1;
+                gameOver = true;
+                gameOverCount = 10;
+                gameinf.player[PLAYER1]->setPlaying(false);
+                if (gameinf.player[PLAYER2])
+                    gameinf.player[PLAYER2]->setPlaying(false);
+                timeRemaining = -1;
             }
         }
 
-        timeline++;
-        if ( gameover )
+        timeLine++;
+        if (gameOver)
         {
-            if ( gameovercount >= 0 ) gameovercount--;
+            if (gameOverCount >= 0) gameOverCount--;
         }
     }
 
-    if ( pstageclear )
+    if (pStageClear)
     {
-        res = pstageclear->MoveAll();
-        if ( res == -1 )  // cambiamos de pantalla
+        res = pStageClear->moveAll();
+        if (res == -1)
         {
-            if ( stage->id < gameinf.numstages )
+            if (stage->id < gameinf.getNumStages())
             {
-                gameinf.currentstage = stage->id + 1;
-                return new PSCENE(&gameinf.stage[stage->id], pstageclear);
+                gameinf.getCurrentStage() = stage->id + 1;
+                return new Scene(&gameinf.getStages()[stage->id], pStageClear);
             }
             else
-                return new PMENU();
+                return new Menu();
         }
-        if ( res == 0 )
+        if (res == 0)
         {
-            delete pstageclear;
-            pstageclear = NULL;
+            delete pStageClear;
+            pStageClear = nullptr;
         }
     }
-    else CheckSequence();
+    else checkSequence();
 
-    return NULL;
+    return nullptr;
 }
 
-
-int PSCENE::Release()
+int Scene::release()
 {
-    int i;
-    lsballs.Release();
-    lsshoots.Release();
-    lsfloor.Release();
+    lsBalls.release();
+    lsShoots.release();
+    lsFloor.release();
 
-    bmp.back.Release();
-    bmp.floor[0].Release();
-    bmp.floor[1].Release();
-    bmp.fontnum[0].Release();
-    bmp.fontnum[1].Release();
-    bmp.miniplayer[PLAYER1].Release();
-    bmp.miniplayer[PLAYER2].Release();
-    bmp.lives[PLAYER1].Release();
-    bmp.lives[PLAYER2].Release();
-    bmp.time.Release();
-    bmp.gameover.Release();
-    bmp.continu.Release();
+    bmp.back.release();
+    bmp.floor[0].release();
+    bmp.floor[1].release();
+    bmp.fontnum[0].release();
+    bmp.fontnum[1].release();
+    bmp.miniplayer[PLAYER1].release();
+    bmp.miniplayer[PLAYER2].release();
+    bmp.lives[PLAYER1].release();
+    bmp.lives[PLAYER2].release();
+    bmp.time.release();
+    bmp.gameover.release();
+    bmp.continu.release();
 
-    for ( i = 0;i < 5;i++ )
-        bmp.mark[i].Release();
-    for ( i = 0;i < 4;i++ )
-        bmp.redball[i].Release();
-    for ( i = 0;i < 2;i++ )
-        bmp.shoot[i].Release();
+    for (int i = 0; i < 5; i++)
+        bmp.mark[i].release();
+    for (int i = 0; i < 4; i++)
+        bmp.redball[i].release();
+    for (int i = 0; i < 3; i++)
+        bmp.shoot[i].release();
 
     CloseMusic();
-
-    delete this;
 
     return 1;
 }
 
-/*****************************************************************/
-/*******				FUNCIONES DE DIBUJADO            *********/
-/*****************************************************************/
-
-void PSCENE::DrawBackground()
+void Scene::drawBackground()
 {
-    graph.Draw(&bmp.back, 0, 0);
+    graph.draw(&bmp.back, 0, 0);
 }
 
-void PSCENE::Draw(BALL* b)
+void Scene::draw(Ball* b)
 {
-    graph.Draw(b->spr, b->x, b->y);
+    graph.draw(b->getSprite(), (int)b->getX(), (int)b->getY());
 }
 
-void PSCENE::Draw(PLAYER* pl)
+void Scene::draw(Player* pl)
 {
-    graph.Draw(pl->spr, pl->x, pl->y);
+    graph.draw(pl->getSprite(), (int)pl->getX(), (int)pl->getY());
 }
 
-void PSCENE::Draw(SHOOT* sht)
+void Scene::draw(Shoot* sht)
 {
-    int i;
-    graph.Draw(sht->spr[0], sht->x, sht->y);
+    graph.draw(sht->getSprite(0), (int)sht->getX(), (int)sht->getY());
 
-    for ( i = sht->y + sht->spr[0]->sy; i < MAX_Y; i += sht->spr[1]->sy )
-        graph.Draw(sht->spr[1 + sht->tail], sht->x, i);
+    for (int i = (int)sht->getY() + sht->getSprite(0)->getHeight(); i < MAX_Y; i += sht->getSprite(1)->getHeight())
+        graph.draw(sht->getSprite(1 + sht->getTail()), (int)sht->getX(), i);
 }
 
-void PSCENE::Draw(FLOOR* fl)
+void Scene::draw(Floor* fl)
 {
-    graph.Draw(fl->spr, fl->x, fl->y);
+    graph.draw(&bmp.floor[fl->getId()], fl->getX(), fl->getY());
 }
 
-void PSCENE::DrawScore()
+void Scene::drawScore()
 {
-    int i;
-    if ( gameinf.player[PLAYER1]->playing )
+    if (gameinf.getPlayers()[PLAYER1]->isPlaying())
     {
-        graph.Draw(&fontnum[1], gameinf.player[PLAYER1]->score, 80, RES_Y - 55);
-        graph.Draw(&bmp.miniplayer[PLAYER1], 20, MAX_Y + 7);
-        for ( i = 0;i < gameinf.player[PLAYER1]->lives;i++ )
+        graph.draw(&fontNum[1], gameinf.getPlayers()[PLAYER1]->getScore(), 80, RES_Y - 55);
+        graph.draw(&bmp.miniplayer[PLAYER1], 20, MAX_Y + 7);
+        for (int i = 0; i < gameinf.getPlayers()[PLAYER1]->getLives(); i++)
         {
-            graph.Draw(&bmp.lives[PLAYER1], 80 + 26 * i, MAX_Y + 30);
+            graph.draw(&bmp.lives[PLAYER1], 80 + 26 * i, MAX_Y + 30);
         }
     }
 
-    if ( gameinf.player[PLAYER2] )
-        if ( gameinf.player[PLAYER2]->playing )
+    if (gameinf.getPlayers()[PLAYER2])
+        if (gameinf.getPlayers()[PLAYER2]->isPlaying())
         {
-            graph.Draw(&bmp.miniplayer[PLAYER2], 400, MAX_Y + 7);
-            graph.Draw(&fontnum[1], gameinf.player[PLAYER2]->score, 460, RES_Y - 55);
-            for ( i = 0;i < gameinf.player[PLAYER2]->lives;i++ )
+            graph.draw(&bmp.miniplayer[PLAYER2], 400, MAX_Y + 7);
+            graph.draw(&fontNum[1], gameinf.getPlayers()[PLAYER2]->getScore(), 460, RES_Y - 55);
+            for (int i = 0; i < gameinf.getPlayers()[PLAYER2]->getLives(); i++)
             {
-                graph.Draw(&bmp.lives[PLAYER2], 460 + 26 * i, MAX_Y + 30);
+                graph.draw(&bmp.lives[PLAYER2], 460 + 26 * i, MAX_Y + 30);
             }
         }
 }
 
-void PSCENE::DrawMark()
+void Scene::drawMark()
 {
-    int i, j;
-    for ( i = 0, j = 0;i < 40; i++, j += 16 )
+    for (int j = 0; j < 640; j += 16)
     {
-        graph.Draw(&bmp.mark[2], j, 0);
-        graph.Draw(&bmp.mark[1], j, MAX_Y + 1);
-        graph.Draw(&bmp.mark[0], j, MAX_Y + 17);
-        graph.Draw(&bmp.mark[0], j, MAX_Y + 33);
-        graph.Draw(&bmp.mark[2], j, MAX_Y + 49);
+        graph.draw(&bmp.mark[2], j, 0);
+        graph.draw(&bmp.mark[1], j, MAX_Y + 1);
+        graph.draw(&bmp.mark[0], j, MAX_Y + 17);
+        graph.draw(&bmp.mark[0], j, MAX_Y + 33);
+        graph.draw(&bmp.mark[2], j, MAX_Y + 49);
     }
 
-    for ( i = 0, j = 0;i < 26; i++, j += 16 )
+    for (int j = 0; j < 416; j += 16)
     {
-        graph.Draw(&bmp.mark[4], 0, j);
-        graph.Draw(&bmp.mark[3], MAX_X + 1, j);
+        graph.draw(&bmp.mark[4], 0, j);
+        graph.draw(&bmp.mark[3], MAX_X + 1, j);
     }
 
-    graph.Draw(&bmp.mark[0], 0, 0);
-    graph.Draw(&bmp.mark[0], MAX_X + 1, 0);
-    graph.Draw(&bmp.mark[0], 0, MAX_Y + 1);
-    graph.Draw(&bmp.mark[0], MAX_X + 1, MAX_Y + 1);
+    graph.draw(&bmp.mark[0], 0, 0);
+    graph.draw(&bmp.mark[0], MAX_X + 1, 0);
+    graph.draw(&bmp.mark[0], 0, MAX_Y + 1);
+    graph.draw(&bmp.mark[0], MAX_X + 1, MAX_Y + 1);
 }
 
-void PSCENE::DrawDebugOverlay()
+void Scene::drawDebugOverlay()
 {
     if (!debugMode) return;
-
-    PAPP::DrawDebugOverlay(); // Base: FPS, pause state
+    App::drawDebugOverlay();
 
     char cadena[256];
-    int y = 80; // Empezar después del overlay base
+    int y = 80;
     int lineHeight = 20;
     
-    // Información del jugador
-    if (gameinf.player[PLAYER1])
+    if (gameinf.getPlayers()[PLAYER1])
     {
-        sprintf(cadena, "P1: Score=%d Lives=%d Shoots=%d", 
-                gameinf.player[PLAYER1]->score,
-                gameinf.player[PLAYER1]->lives,
-                gameinf.player[PLAYER1]->numshoots);
-        graph.Text(cadena, 20, y);
+        std::sprintf(cadena, "P1: Score=%d Lives=%d Shoots=%d", 
+                gameinf.getPlayers()[PLAYER1]->getScore(),
+                gameinf.getPlayers()[PLAYER1]->getLives(),
+                gameinf.getPlayers()[PLAYER1]->getNumShoots());
+        graph.text(cadena, 20, y);
         y += lineHeight;
     }
     
-    // Información de la primera pelota (si existe)
-    MLISTNODE* pt = lsballs.GetFirstNode();
+    MListNode* pt = lsBalls.getFirstNode();
     if (pt)
     {
-        BALL* ptb = (BALL*)pt->data;
-        sprintf(cadena, "Ball: y=%.1f t=%.1f dirx=%d diry=%d", 
-                ptb->y, ptb->t, ptb->dirx, ptb->diry);
-        graph.Text(cadena, 20, y);
-        y += lineHeight;
-        
-        sprintf(cadena, "Ball: size=%d top=%d diameter=%d", 
-                ptb->size, ptb->top, ptb->diameter);
-        graph.Text(cadena, 20, y);
+        Ball* ptb = (Ball*)pt->data;
+        std::sprintf(cadena, "Ball: y=%.1f size=%d diameter=%d", 
+                ptb->getY(), ptb->getSize(), ptb->getDiameter());
+        graph.text(cadena, 20, y);
         y += lineHeight;
     }
     
-    // Número de objetos en pantalla
-    sprintf(cadena, "Objects: Balls=%d Shoots=%d Floors=%d", 
-            lsballs.GetDimension(),
-            lsshoots.GetDimension(),
-            lsfloor.GetDimension());
-    graph.Text(cadena, 20, y);
+    std::sprintf(cadena, "Objects: Balls=%d Shoots=%d Floors=%d", 
+            lsBalls.getDimension(),
+            lsShoots.getDimension(),
+            lsFloor.getDimension());
+    graph.text(cadena, 20, y);
     y += lineHeight;
     
-    // Información del stage
-    sprintf(cadena, "Stage: %d  Time=%d  Timeline=%d", 
-            stage->id, time, timeline);
-    graph.Text(cadena, 20, y);
+    std::sprintf(cadena, "Stage: %d  Time=%d  Timeline=%d", 
+            stage->id, timeRemaining, timeLine);
+    graph.text(cadena, 20, y);
     y += lineHeight;
     
-    // Estado del juego
-    sprintf(cadena, "GameOver=%s  LevelClear=%s", 
-            gameover ? "YES" : "NO",
-            levelclear ? "YES" : "NO");
-    graph.Text(cadena, 20, y);
+    std::sprintf(cadena, "GameOver=%s  LevelClear=%s", 
+            gameOver ? "YES" : "NO",
+            levelClear ? "YES" : "NO");
+    graph.text(cadena, 20, y);
 }
 
-int PSCENE::DrawAll()
+int Scene::drawAll()
 {
-    MLISTNODE* pt = lsballs.GetFirstNode();
-    BALL* ptb;
-    SHOOT* pts;
-    FLOOR* pfl;
+    MListNode* pt = lsBalls.getFirstNode();
+    Ball* ptb;
+    Shoot* pts;
+    Floor* pfl;
 
-    DrawBackground();
+    drawBackground();
 
-    pt = lsfloor.GetFirstNode();
-    while ( pt )
+    pt = lsFloor.getFirstNode();
+    while (pt)
     {
-        pfl = ( FLOOR* )pt->data;
-        Draw(pfl);
-        pt = lsshoots.GetNextNode(pt);
+        pfl = (Floor*)pt->data;
+        draw(pfl);
+        pt = lsFloor.getNextNode(pt);
     }
 
-    pt = lsshoots.GetFirstNode();
-    while ( pt )
+    pt = lsShoots.getFirstNode();
+    while (pt)
     {
-        pts = ( SHOOT* )pt->data;
-        Draw(pts);
-        pt = lsshoots.GetNextNode(pt);
+        pts = (Shoot*)pt->data;
+        draw(pts);
+        pt = lsShoots.getNextNode(pt);
     }
 
-    DrawMark();
-    DrawScore();
-    graph.Draw(&bmp.time, 320 - bmp.time.sx / 2, MAX_Y + 3);
-    graph.Draw(&fontnum[FONT_BIG], time, 300, MAX_Y + 20);
+    drawMark();
+    drawScore();
+    graph.draw(&bmp.time, 320 - bmp.time.getWidth() / 2, MAX_Y + 3);
+    graph.draw(&fontNum[FONT_BIG], timeRemaining, 300, MAX_Y + 20);
 
-    if ( gameinf.player[PLAYER1]->visible && gameinf.player[PLAYER1]->playing )
-        Draw(gameinf.player[PLAYER1]);
+    if (gameinf.getPlayers()[PLAYER1]->isVisible() && gameinf.getPlayers()[PLAYER1]->isPlaying())
+        draw(gameinf.getPlayers()[PLAYER1]);
 
-    if ( gameinf.player[PLAYER2] )
-        if ( gameinf.player[PLAYER2]->visible && gameinf.player[PLAYER2]->playing )
-            Draw(gameinf.player[PLAYER2]);
+    if (gameinf.getPlayers()[PLAYER2])
+        if (gameinf.getPlayers()[PLAYER2]->isVisible() && gameinf.getPlayers()[PLAYER2]->isPlaying())
+            draw(gameinf.getPlayers()[PLAYER2]);
 
-    pt = lsballs.GetFirstNode();
-    while ( pt )
+    pt = lsBalls.getFirstNode();
+    while (pt)
     {
-        ptb = ( BALL* )pt->data;
-        Draw(ptb);
-        pt = lsballs.GetNextNode(pt);
+        ptb = (Ball*)pt->data;
+        draw(ptb);
+        pt = lsBalls.getNextNode(pt);
     }
 
-    if ( gameover )
+    if (gameOver)
     {
-        graph.Draw(&bmp.gameover, 100, 125);
-        if ( gameovercount >= 0 )
+        graph.draw(&bmp.gameover, 100, 125);
+        if (gameOverCount >= 0)
         {
-            graph.Draw(&bmp.continu, 110, 240);
-            graph.Draw(&fontnum[FONT_HUGE], gameovercount, 315, 300);
+            graph.draw(&bmp.continu, 110, 240);
+            graph.draw(&fontNum[FONT_HUGE], gameOverCount, 315, 300);
         }
     }
 
-    if ( pstageclear ) pstageclear->DrawAll();
+    if (pStageClear) pStageClear->drawAll();
     
-    // Dibujar información de debug si está activada
-    DrawDebugOverlay(); // Base: FPS, pause state
+    drawDebugOverlay();
     
-    graph.Flip();
+    graph.flip();
 
     static int tck = 0, lasttck = 0, cont = 0;
     tck = SDL_GetTicks();
-    if ( tck - lasttck > 1000 )
+    if (tck - lasttck > 1000)
     {
         fps = cont;
         cont = 0;

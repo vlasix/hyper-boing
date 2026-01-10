@@ -9,118 +9,104 @@
 #include "floor.h"
 #include "item.h"
 #include "stage.h"
+#include "app.h"
 
-class PSTAGECLEAR;
+class StageClear;
 
-
-/************************************************************
-      clase FLOORCOLISION
-  
-    Es una clase auxiliar que necesito para tratar las
-    colisiones de las BALLS con los FLOORS.
-*************************************************************/
-class FLOORCOLISION
+/**
+ * FloorColision class
+ * Auxiliary class for handling collisions between balls and floors.
+ */
+class FloorColision
 {
 public:
-    FLOOR *fl;
-    POINT col;
+    Floor* floor;
+    SDL_Point point;
 
-    FLOORCOLISION()
-    { fl=NULL; col.x=col.y=0; }
+    FloorColision() : floor(nullptr) { point.x = point.y = 0; }
 };
 
-
-typedef struct PSCNBITMAPS
+/**
+ * SceneBitmaps struct
+ * Contains sprites for the game scene.
+ */
+struct SceneBitmaps
 {
-    SPRITE back;
-    SPRITE redball[4];
-    SPRITE floor[2];
-    SPRITE shoot[3];
-    SPRITE mark[5];
-    SPRITE fontnum[3];
-    SPRITE miniplayer[2];
-    SPRITE lives[2];
-    SPRITE gameover;
-    SPRITE continu;  // continue = palabra reservada :P
-    SPRITE time;
+    Sprite back;
+    Sprite redball[4];
+    Sprite floor[2];
+    Sprite shoot[3];
+    Sprite mark[5];
+    Sprite fontnum[3];
+    Sprite miniplayer[2];
+    Sprite lives[2];
+    Sprite gameover;
+    Sprite continu;
+    Sprite time;
+};
 
-}PSCENEBITMAPS;
-
-
-/************************************************************
-      clase PSTAGE
-  
-    Como se puede observar, puesto que es una clase que 
-    hereda PAPP, se trata de un modulo del juego. Este es
-    el modulo principal, donde se juega realmente.
-
-   Contiene informacion con los bitmaps de la pantalla
-   y varias listas enlazadas, con las pelotas en pantalla
-   los items(opcion no implementada) los bloques y los disparos.
-
-*************************************************************/
-
-class PSCENE : public PAPP
+/**
+ * Scene class
+ *
+ * This is the core game module. It manages the active gameplay:
+ * balls, players, shoots, floors, and collision logic.
+ * Inherits from App.
+ */
+class Scene : public App
 {
-public:
-
-    PSCENEBITMAPS bmp;
-    BMNUMFONT fontnum[3];
-
-    MLIST lsballs;  // LISTA DE PELOTAS EN PANTALLA
-    MLIST lsitems; // LISTA DE ITEMS
-    MLIST lsfloor; // LISTA DE LAS OBSTRUCCIONES
-    MLIST lsshoots; //disparos
-
-    int levelclear;
-    PSTAGECLEAR *pstageclear; //secuencia de nivel completado
-    BOOL gameover;
-    BOOL gameovercount; // cuenta atras para para continuar o no
-    PSTAGE *stage; // informacion para el desarrollo del nivel
+private:
+    bool levelClear;
+    StageClear* pStageClear;
+    bool gameOver;
+    int gameOverCount;
+    Stage* stage;
     
     int change;
-    int dsecond; //contador de decimas de segundo;
-    int time;  // cuenta atras
-    int timeline; // linea de tiempo
+    int dSecond; // deciseconds counter
+    int timeRemaining;
+    int timeLine;
 
-    PSCENE(PSTAGE *stg, PSTAGECLEAR *pstgclr=NULL);
+public:
+    SceneBitmaps bmp;
+    BmNumFont fontNum[3];
+
+    MList lsBalls;
+    MList lsItems;
+    MList lsFloor;
+    MList lsShoots;
+
+    Scene(Stage* stg, StageClear* pstgclr = nullptr);
+    virtual ~Scene() {}
     
-    void AddBall(int x=250, int y=-20, int size=0, int top=0, int dirx=1, int diry=1, int id=0);
-    void AddItem(int x, int y, int id);
-    void AddShoot(PLAYER *pl);
-    void AddFloor(int x, int y, int id);
-    void Shoot(PLAYER *pl);
+    void addBall(int x = 250, int y = -20, int size = 0, int top = 0, int dirX = 1, int dirY = 1, int id = 0);
+    void addItem(int x, int y, int id);
+    void addShoot(Player* pl);
+    void addFloor(int x, int y, int id);
+    void shoot(Player* pl);
 
-    int DivideBall(BALL *b);
-    void CheckColisions();
-    void Decide(BALL *b, FLOORCOLISION *fc, int moved);
+    int divideBall(Ball* b);
+    void checkColisions();
+    void decide(Ball* b, FloorColision* fc, int moved);
 
-    int ObjectScore(int id);
-    void Win();
+    int objectScore(int id);
+    void win();
     
-    int Init();
-    int InitBitmaps();
-    void DrawBackground();
-    int DrawAll();
-    void Draw(BALL *b);
-    void Draw(PLAYER *pl);
-    void Draw(SHOOT *sht);
-    void Draw(FLOOR *fl);
-    void DrawScore();
-    void DrawMark();
-    virtual void DrawDebugOverlay();
+    int init() override;
+    int initBitmaps();
+    void drawBackground();
+    int drawAll() override;
+    void draw(Ball* b);
+    void draw(Player* pl);
+    void draw(Shoot* sht);
+    void draw(Floor* fl);
+    void drawScore();
+    void drawMark();
+    void drawDebugOverlay() override;
 
-    void * MoveAll();
-    void CheckSequence();
+    void* moveAll() override;
+    void checkSequence();
 
-    int Release();
+    int release() override;
 };
-
-
-char OpenMusic( char * );
-char PlayMusic( void );
-char StopMusic( void );
-char ContinueMusic( void );
-char CloseMusic( void );
 
 #endif

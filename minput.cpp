@@ -1,57 +1,29 @@
 #include <SDL.h>
-#include "pang.h"
+#include "minput.h"
 
-MINPUT::MINPUT ()
+MInput::MInput()
 {
-    // Initialize buffer
-    //memset ( buffer, 0, sizeof ( buffer ) );
 }
 
-MINPUT::~MINPUT ()
+MInput::~MInput()
 {
-    // Release SDL input device
-    //if ( sdlKeyboard )
-    //    SDL_DestroyKeyboard ( sdlKeyboard );
 }
 
-BOOL MINPUT::Init ( HINSTANCE hInst, HWND hwnd )
+bool MInput::init()
 {
-    // Initialize SDL
-    if ( SDL_Init ( SDL_INIT_VIDEO | SDL_INIT_EVENTS ) != 0 )
-        return FALSE;
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0)
+        return false;
 
-    // Create SDL window (if needed)
-    // HWND hwnd could be used to create an SDL window if required.
-
-    // Create SDL keyboard device
-    //sdlKeyboard = SDL_CreateKeyboard ();
-
-    //return (sdlKeyboard != nullptr);
     return true;
 }
 
-//BOOL MINPUT::ReadKeyboard ()
-//{
-//    // Update keyboard state
-//    SDL_PumpEvents ();
-//    int numKeys;
-//    const Uint8* keyState = SDL_GetKeyboardState ( &numKeys );
-//
-//    // Copy SDL keyboard state to buffer
-//    memcpy ( buffer, keyState, sizeof ( int ) * numKeys );
-//
-//    return TRUE;
-//}
-
-BOOL MINPUT::Key ( SDL_Scancode k )
+bool MInput::key(SDL_Scancode k)
 {
-    const Uint8* keyState = SDL_GetKeyboardState ( NULL );
-    // Check if key k is pressed
-    return keyState[k];
+    const Uint8* keyState = SDL_GetKeyboardState(nullptr);
+    return keyState[k] != 0;
 }
 
-BOOL MINPUT::ReacquireInput ( void )
+bool MInput::reacquireInput()
 {
-    // SDL does not require explicit acquisition or reacquisition
-    return TRUE;
+    return true;
 }

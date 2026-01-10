@@ -1,79 +1,67 @@
-#ifndef PAPP_H_
-#define PAPP_H_
+#pragma once
 
-// Forward declaration
-class SPRITE;
+#include <SDL.h>
+#include "bmfont.h"
 
-/********************************************************
- clase PAPP
+class Sprite;
 
-  Esta clase se utiliza para crear diferentes instancias
-  de la pantalla del juego en la que nos encontremos.
-  Será la clase Padre de una serie de clases que forman
-  parte del juego, a modo de "modulo" independiente.
-
-  De ahí las funciones virtuales puras abajo declaradas:
-
-  - Init();
-		Cada modulo llevará asociado unos bitmaps y recursos
-		necesarios, que se cargaran al crearse el objeto.
-		De esta manera los recursos del sistema se administran
-		mejor.
-  - DrawAll();
-		Dibuja todos los elementos que hay en pantalla.
-  
-  - MoveAll();
-		Realiza todos los movimientos necesarios, lectura del
-		teclado, y comprobaciones de colisiones si fuera
-		necesario, etc...
-  - ReleaseAll();
-		Libera todos los recursos empleados en Init();
-********************************************************/
-
-class PAPP
+/**
+ * App class
+ *
+ * This class is used to create different instances of the current game screen.
+ * It serves as the base class for several game modules.
+ *
+ * Virtual functions:
+ * - init(): Each module has associated bitmaps and resources loaded upon object creation,
+ *           optimizing system resource management.
+ * - drawAll(): Renders all elements currently on the screen.
+ * - moveAll(): Handles movements, input reading, collision detection, etc.
+ */
+class App
 {
+protected:
+    int gameSpeed; // frames per second in milliseconds
+    int fps, fpsv;
+    bool active; // window active?
+    bool pause;
+    short int difTime1, difTime2;
+    long time1, time2;
+    // BMFont for the menu
+    BMFontLoader fontLoader;
+    BMFontRenderer fontRenderer;
+
 public:
-	
-	int gamespeed; // fotogramas por segundo
-	int fps, fpsv;
-	BOOL active; // ventana activa ??
-	BOOL pause;
-	short int diftime1, diftime2;
-	long time1, time2;
+    // Shared scrolling background
+    static Sprite* sharedBackground;
+    static int scrollX, scrollY;
+    static bool backgroundInitialized;
+    
+    // Global debug mode
+    static bool debugMode;
 
-	// Background scrolling compartido
-	static SPRITE* sharedBackground;
-	static int scrollX, scrollY;
-	static bool backgroundInitialized;
-	
-	// Debug mode global
-	static bool debugMode;
+    App();
+    virtual ~App() {}
 
-	void * DoTick();
-	void DoPause();
-	void SetGameSpeed(int speed);
-	void SetPause(BOOL b);
-	void SetActive(BOOL b);
-	BOOL IsActive();
-	BOOL IsPaused();
+    void* doTick();
+    void doPause();
+    void setGameSpeed(int speed);
+    void setPause(bool b);
+    void setActive(bool b);
+    bool isActive() const { return active; }
+    bool isPaused() const { return pause; }
 
-	PAPP();
-
-	// Init es ahora virtual (no pura) para que las clases derivadas puedan llamarlo
-	virtual int Init();
-	virtual void * MoveAll()=0;
-	virtual int DrawAll()=0;
-	virtual int Release()=0;
-	
-	// Funciones compartidas
-	static void InitSharedBackground();
-	static void UpdateScrollingBackground();
-	static void DrawScrollingBackground();
-	static void ReleaseSharedBackground();
-	
-	// Debug overlay - virtual para que cada screen pueda personalizarlo
-	virtual void DrawDebugOverlay();
-
+    // Virtual methods for derived classes
+    virtual int init();
+    virtual void* moveAll() = 0;
+    virtual int drawAll() = 0;
+    virtual int release() = 0;
+    
+    // Shared functions
+    static void initSharedBackground();
+    static void updateScrollingBackground();
+    static void drawScrollingBackground();
+    static void releaseSharedBackground();
+    
+    // Debug overlay - virtual so each screen can customize it
+    virtual void drawDebugOverlay();
 };
-
-#endif

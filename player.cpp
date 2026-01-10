@@ -1,294 +1,243 @@
 #include "pang.h"
+#include <cstring>
 
-PLAYER::PLAYER(int _sx, int _sy, int _id)
+Player::Player(int sx, int sy, int id)
+    : sx(sx), sy(sy), id(id)
 {
-    sx = _sx;
-    sy = _sy;
-
-    id = _id;
-
-    x = 200+ 100*id;
-    y = MAX_Y-sy;	
-    maxshoots = 2;
-    numshoots = 0;
-    cont = interval = 20;
+    xPos = 200.0f + 100.0f * id;
+    yPos = (float)(MAX_Y - sy);	
+    maxShoots = 2;
+    numShoots = 0;
+    shotCounter = shotInterval = 20;
     score = 0;
 
-
-    Init();
+    init();
 }
 
-PLAYER::PLAYER(int _id)
+Player::Player(int id)
+    : id(id)
 {
-    id = _id;	
-    
-    Init();
+    init();
 }
 
-PLAYER::~PLAYER()
+Player::~Player()
 {
-
 }
 
-void PLAYER::Init()
+/**
+ * Player initialization
+ *
+ * Configures the initial sprite, bounding box, movement keys,
+ * lives, and score.
+ */
+void Player::init()
 {
-    dead = FALSE;
+    dead = false;
     score = 0;
     frame = 0;
-    maxshoots = 2;
-    numshoots = 0;
+    maxShoots = 2;
+    numShoots = 0;
     lives = 3;
-    visible = TRUE;
-    immune = 0;
-    playing = TRUE;
+    visible = true;
+    immuneCounter = 0;
+    playing = true;
 
-    interval = 15;
-    speed = cont = 10;
+    shotInterval = 15;
+    animSpeed = shotCounter = 10;
     score = 0;
-    inc = 3;
-    spr = &gameinf.bmp.player[id][ANIM_SHOOT];
-    sx = spr->sx;
-    sy = spr->sy;
-    x = 200+ 100*id;
-    y = MAX_Y - sy;
+    moveIncrement = 3;
+    sprite = &gameinf.getBmp().player[id][ANIM_SHOOT];
+    sx = sprite->getWidth();
+    sy = sprite->getHeight();
+    xPos = 200.0f + 100.0f * id;
+    yPos = (float)(MAX_Y - sy);
 
-    xdir = 5;
-    ydir = -4;
+    xDir = 5;
+    yDir = -4;
 }
 
-/*******************************************************
-    Revive()
-
-    Resucita al personaje.
-    Restaura sus variables, pero mantiene su puntuacion y
-    el numero de vidas, que supuestamente ha sido decrementado 
-    previamente.
-    Asimismo, activa la variable immuno, que hace inmune al
-    jugador durante 6 segundos aproximadamente.
-
-    * Esta funcion es llamada cuando perdemos una vida.
-*********************************************************/
-void PLAYER::Revive()
+/**
+ * Re-initializes the player after death, granting a period
+ * of invulnerability.
+ */
+void Player::revive()
 {
-    dead = FALSE;
-    immune = 350;
+    dead = false;
+    immuneCounter = 350;
 
     frame = 0;
-    maxshoots = 2;
-    numshoots = 0;
-    playing = TRUE;
+    maxShoots = 2;
+    numShoots = 0;
+    playing = true;
 
-    interval = 15;
-    speed = cont = 10;
-    spr = &gameinf.bmp.player[id][ANIM_SHOOT];
-    sx = spr->sx;
-    sy = spr->sy;
+    shotInterval = 15;
+    animSpeed = shotCounter = 10;
+    sprite = &gameinf.getBmp().player[id][ANIM_SHOOT];
+    sx = sprite->getWidth();
+    sy = sprite->getHeight();
     
-    x = 200+ 100*id;
-    y = MAX_Y - sy;
+    xPos = 200.0f + 100.0f * id;
+    yPos = (float)(MAX_Y - sy);
 
-    xdir = 5;
-    ydir = -4;
+    xDir = 5;
+    yDir = -4;
 }
 
-void PLAYER::MoveLeft()
+void Player::moveLeft()
 {
-    if(x>MIN_X-10)
-        x-=inc;
+    if (xPos > MIN_X - 10)
+        xPos -= moveIncrement;
     
-        
-    if(frame >= ANIM_RIGHT-1)
+    if (frame >= ANIM_RIGHT - 1)
     {
         frame = ANIM_LEFT;
-        spr = &gameinf.bmp.player[id][frame];
-        cont = speed;
+        sprite = &gameinf.getBmp().player[id][frame];
+        shotCounter = animSpeed;
     }
-    else	
-    if(!cont)
+    else if (!shotCounter)
     {
-        if(frame<ANIM_LEFT+4)frame++;
-            else frame = ANIM_RIGHT;
-        spr = &gameinf.bmp.player[id][frame];
-        cont = speed;
-    }else cont--;
+        if (frame < ANIM_LEFT + 4) frame++;
+        else frame = ANIM_RIGHT;
+        sprite = &gameinf.getBmp().player[id][frame];
+        shotCounter = animSpeed;
+    }
+    else shotCounter--;
 }
 
-void PLAYER::MoveRight()
+void Player::moveRight()
 {
-    if(x+sx<MAX_X-5)
-        x+=inc;
+    if (xPos + sx < MAX_X - 5)
+        xPos += moveIncrement;
 
-    // si estaba andando hacia la izq cambiamos		
-    if(frame < ANIM_RIGHT ||frame > ANIM_RIGHT + 4)
+    if (frame < ANIM_RIGHT || frame > ANIM_RIGHT + 4)
     {
         frame = ANIM_RIGHT;
-        spr = &gameinf.bmp.player[id][frame];
-        cont = speed;
+        sprite = &gameinf.getBmp().player[id][frame];
+        shotCounter = animSpeed;
     }
-    else //sino pues pasamos al siguiente frame
-    if(!cont)
+    else if (!shotCounter)
     {
-        if(frame<ANIM_RIGHT+4)frame++;
-            else frame = ANIM_RIGHT;
+        if (frame < ANIM_RIGHT + 4) frame++;
+        else frame = ANIM_RIGHT;
 
-        spr = &gameinf.bmp.player[id][frame];
-        cont = speed;
-    }else cont--;
+        sprite = &gameinf.getBmp().player[id][frame];
+        shotCounter = animSpeed;
+    }
+    else shotCounter--;
 }
 
-/*******************************************************
-    SetFrame()
-
-    Pone el bitmap actual del personaje dependiendo del frame
-    que indiquemos.
-*********************************************************/
-void PLAYER::SetFrame(int _frame)
+void Player::setFrame(int f)
 {
-    frame = _frame;
-    spr = &gameinf.bmp.player[id][frame];
+    frame = f;
+    sprite = &gameinf.getBmp().player[id][frame];
 }
 
-BOOL PLAYER::CanShoot()
+bool Player::canShoot() const
 {
-    int disp = FALSE;
-    // si no hay ningun disparo entonces disparamos
-    /* PERO si hay algun disparo comprobamoss si se ha superado
-       el tiempo de intervalo, y que el numero de disparos
-       en pantalla sea el correcto
-    */
+    if (numShoots == 0)
+    {
+        return true;		
+    }
+    else if (shotCounter == 0 && numShoots < maxShoots)
+    {
+        return true;
+    }
     
-    if(!numshoots)
-    {
-        disp = TRUE;		
-    }
-    else
-        if(!cont && numshoots<maxshoots)
-            disp = TRUE;
-    
-    return disp;
+    return false;
 }
 
-/*******************************************************
-    Shoot()
-
-    Añade un disparo al contador de disparos y resetea el contador
-    de tiempo de manera que no podamos disparar dos veces en 
-    un periodo de tiempo.
-    Tambien actualiza el bitmap correspondiente al disparo.
-*********************************************************/
-void PLAYER::Shoot()
+void Player::shoot()
 {
-    numshoots++;
-    cont = interval;
-    if(frame != ANIM_SHOOT+1)
+    numShoots++;
+    shotCounter = shotInterval;
+    if (frame != ANIM_SHOOT + 1)
     {
-        frame = ANIM_SHOOT+1;
-        spr = &gameinf.bmp.player[id][frame];
+        frame = ANIM_SHOOT + 1;
+        sprite = &gameinf.getBmp().player[id][frame];
     }
 }
 
-/*******************************************************
-    Stop()
-
-    Coloca el jugador en posicion parada. Preparado para
-    disparar.
-    Del mismo modo decrementa los contadores que permiten
-    disparar o no en un pequeño intervalo de tiempo.
-*********************************************************/
-void PLAYER::Stop()
+void Player::stop()
 {
-    if(frame != ANIM_SHOOT)
+    if (frame != ANIM_SHOOT)
     {
-        if(frame==ANIM_SHOOT+1)
-            if(!cont)
+        if (frame == ANIM_SHOOT + 1)
+            if (!shotCounter)
             {
                 frame = ANIM_SHOOT;
-                spr = &gameinf.bmp.player[id][frame];				
-                cont = interval;
-            }else cont --;
+                sprite = &gameinf.getBmp().player[id][frame];				
+                shotCounter = shotInterval;
+            }
+            else shotCounter--;
         else
         {
             frame = ANIM_SHOOT;
-            spr = &gameinf.bmp.player[id][frame];
+            sprite = &gameinf.getBmp().player[id][frame];
         }
     }
-    if(x+sx > MAX_X-10) x = MAX_X - 16 - sx;
+    if (xPos + sx > MAX_X - 10) xPos = (float)(MAX_X - 16 - sx);
 }
 
-/*******************************************************
-    Update()
-
-    Actualiza el personaje. Actualiza sus contadores y sus
-    variables de estado.
-*********************************************************/
-void PLAYER::Update()
+void Player::update()
 {
-
-    if(cont>0) cont--;
+    if (shotCounter > 0) shotCounter--;
     
-    if(dead) /* animacion de muerto */
+    if (dead)
     {
-        if(!cont)
+        if (!shotCounter)
         {
-            if(frame<ANIM_DEAD+7) SetFrame(frame+1);
-            else SetFrame(ANIM_DEAD);
-            cont = speed;
+            if (frame < ANIM_DEAD + 7) setFrame(frame + 1);
+            else setFrame(ANIM_DEAD);
+            shotCounter = animSpeed;
         }
 
-        if(x+spr->sx>=MAX_X)
+        if (xPos + sprite->getWidth() >= MAX_X)
         {
-            xdir = -2;
-            ydir = 8;
+            xDir = -2;
+            yDir = 8;
         }
-        if(y>RES_Y) 
+        if (yPos > RES_Y) 
         {		
-            if(lives>0)
+            if (lives > 0)
             {
-                lives = lives - 1;
-                Revive();
+                lives--;
+                revive();
                 return;
             }
-            else playing = FALSE;			
+            else playing = false;			
         }
 
-        x+= xdir;
-        y+= ydir;				
+        xPos += xDir;
+        yPos += yDir;				
     }
     else
     {
-        if(immune)
+        // Handle immunity blinking effect
+        if (immuneCounter)
         {
-            immune--;
+            immuneCounter--;
             visible = !visible;
-            if(!immune) visible = TRUE;
+            if (!immuneCounter) visible = true;
         }
     }
 }
 
-
-void PLAYER::AddScore(int num)
+void Player::addScore(int num)
 {
-    score +=num;
-
+    score += num;
 }
 
-
-/************************************************************
-            LooseShoot()					
-                                                
-    Con esta funcion se hace saber al Player		
-    que uno de los disparos que ha lanzado ya	
-    ha dejado de existir							
-*************************************************************/
-void PLAYER::LooseShoot()
+void Player::looseShoot()
 {
-    if(numshoots)
-        numshoots--;
+    if (numShoots > 0)
+        numShoots--;
 }
 
-
-void PLAYER::Kill()
+/**
+ * Handles player death logic.
+ */
+void Player::kill()
 {
-    dead = TRUE;
-    speed = 4;
+    dead = true;
+    animSpeed = 4;
 }

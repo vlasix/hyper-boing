@@ -1,32 +1,31 @@
-#include <stdio.h>
+#include <cstdio>
+#include <cstring>
 #include "pang.h"
 
-
-PSTAGECLEAR::PSTAGECLEAR(PSCENE *scn)
+StageClear::StageClear(Scene* scn)
 {
     scene = scn;
-    Init();
+    init();
 }
 
-PSTAGECLEAR::~PSTAGECLEAR()
+StageClear::~StageClear()
 {
-    Release();
+    release();
 }
 
-int PSTAGECLEAR::Init()
+int StageClear::init()
 {
-    
-    bmp.title1.Init(&graph, "graph\\nivel.png", 0, 0);
-    graph.SetColorKey(bmp.title1.bmp, RGB(0,255,0));
-    bmp.title2.Init(&graph, "graph\\completado.png", 0, 0);
-    graph.SetColorKey(bmp.title2.bmp, RGB(0,255,0));
-    bmp.roof.Init(&graph, "graph\\ladrill4.png", 0, 0);
-    graph.SetColorKey(bmp.roof.bmp, RGB(0,255,0));
+    bmp.title1.init(&graph, "graph\\nivel.png", 0, 0);
+    graph.setColorKey(bmp.title1.getBmp(), 0x00FF00);
+    bmp.title2.init(&graph, "graph\\completado.png", 0, 0);
+    graph.setColorKey(bmp.title2.getBmp(), 0x00FF00);
+    bmp.roof.init(&graph, "graph\\ladrill4.png", 0, 0);
+    graph.setColorKey(bmp.roof.getBmp(), 0x00FF00);
 
-    xt1 = - bmp.title1.sx;
+    xt1 = -bmp.title1.getWidth();
     xt2 = 640;
     yt1 = 50;
-    yt2 = 50 + bmp.title1.sy + scene->bmp.fontnum[FONT_HUGE].sy +25;
+    yt2 = 50 + bmp.title1.getHeight() + scene->bmp.fontnum[FONT_HUGE].getHeight() + 25;
     yr1 = -16;
     yr2 = 480;
 
@@ -36,199 +35,195 @@ int PSTAGECLEAR::Init()
     cscore[PLAYER1] = 0;
     cscore[PLAYER2] = 0;
 
-    endmove = FALSE;
-    endcount = FALSE;
-    movingout = FALSE;
-    finish = FALSE;
-    closing = opening = FALSE;
-    endclose = endopening = FALSE;
+    endMove = false;
+    endCount = false;
+    movingOut = false;
+    finish = false;
+    isClosing = isOpening = false;
+    endClose = endOpening = false;
 
     return 1;
 }
 
-void PSTAGECLEAR::DrawAll()
+void StageClear::drawAll()
 {
-    int i,j;
-    char cad[10 ];
+    int i, j;
+    char cad[10];
     
-    sprintf(cad, "%2d", gameinf.currentstage);
-    for(i=0;i<strlen(cad);i++)
-        if(cad[i] == ' ') cad[i] = '0';
+    std::sprintf(cad, "%2d", gameinf.getCurrentStage());
+    for (i = 0; i < (int)std::strlen(cad); i++)
+        if (cad[i] == ' ') cad[i] = '0';
 
-    if(closing)
+    if (isClosing)
     {			
-        for(i=-16;i<(yr1/16)+1;i++)
-            for(j=0;j<40;j++)
+        for (i = -16; i < (yr1 / 16) + 1; i++)
+            for (j = 0; j < 40; j++)
             {	
-                graph.DrawClipped(&bmp.roof, j*16, /**/+i*16-(i%16));
-                graph.DrawClipped(&bmp.roof, j*16, 480-(i*16));
+                graph.drawClipped(&bmp.roof, j * 16, i * 16 - (i % 16));
+                graph.drawClipped(&bmp.roof, j * 16, 480 - (i * 16));
             }
     }	
-    else
-        if(opening)
-        {			
-            for(i=(yr1/16)+1;i>-17;i--)
-                for(j=0;j<40;j++)
-                {	
-                    graph.DrawClipped(&bmp.roof, j*16, /**/+i*16-(i%16));
-                    graph.DrawClipped(&bmp.roof, j*16, 480-(i*16));
-                }
-        }	
+    else if (isOpening)
+    {			
+        for (i = (yr1 / 16) + 1; i > -17; i--)
+            for (j = 0; j < 40; j++)
+            {	
+                graph.drawClipped(&bmp.roof, j * 16, i * 16 - (i % 16));
+                graph.drawClipped(&bmp.roof, j * 16, 480 - (i * 16));
+            }
+    }	
 
-    graph.DrawClipped(&bmp.title1, xt1, yt1);
-    graph.DrawClipped(&bmp.title2, xt2, yt2);
-    graph.DrawClipped(&scene->fontnum[FONT_HUGE], cad, xnum, ynum);
+    graph.drawClipped(&bmp.title1, xt1, yt1);
+    graph.drawClipped(&bmp.title2, xt2, yt2);
+    graph.drawClipped(&scene->fontNum[FONT_HUGE], cad, xnum, ynum);
     
-    
-    if(finish) return;
-    if(!closing)
+    if (finish) return;
+    if (!isClosing)
     {
-        if(gameinf.player[PLAYER1]->playing)
-            graph.Draw(&scene->bmp.miniplayer[PLAYER1], 40, 300);
-        if(gameinf.player[PLAYER2])
-            if(gameinf.player[PLAYER2]->playing)
-                graph.Draw(&scene->bmp.miniplayer[PLAYER2], 350, 300);
+        if (gameinf.getPlayers()[PLAYER1]->isPlaying())
+            graph.draw(&scene->bmp.miniplayer[PLAYER1], 40, 300);
+        if (gameinf.getPlayers()[PLAYER2])
+            if (gameinf.getPlayers()[PLAYER2]->isPlaying())
+                graph.draw(&scene->bmp.miniplayer[PLAYER2], 350, 300);
     }
 
-    if(endmove && !closing)
+    if (endMove && !isClosing)
     {
-        if(gameinf.player[PLAYER1]->playing)
-            graph.Draw(&scene->fontnum[FONT_SMALL], cscore[PLAYER1], 105, 320);
-        if(gameinf.player[PLAYER2])
-            if(gameinf.player[PLAYER2]->playing)
-                graph.Draw(&scene->fontnum[FONT_SMALL], cscore[PLAYER2], 450, 320);
+        if (gameinf.getPlayers()[PLAYER1]->isPlaying())
+            graph.draw(&scene->fontNum[FONT_SMALL], cscore[PLAYER1], 105, 320);
+        if (gameinf.getPlayers()[PLAYER2])
+            if (gameinf.getPlayers()[PLAYER2]->isPlaying())
+                graph.draw(&scene->fontNum[FONT_SMALL], cscore[PLAYER2], 450, 320);
     }
-                
 }
 
-int PSTAGECLEAR::MoveAll()
+/**
+ * StageClear logic
+ *
+ * This function manages the stage clear sequence: moving text into screen,
+ * incrementing scores, and waiting for player input to proceed.
+ */
+int StageClear::moveAll()
 {
-    BOOL a = FALSE, b = FALSE, c = FALSE;
+    bool a = false, b = false, c = false;
 
-    //input.ReadKeyboard();
-    if(input.Key(gameinf.keys[PLAYER1].shoot))
+    if (input.key(gameinf.getKeys()[PLAYER1].shoot))
     {
-        if(!endcount)
+        if (!endCount)
         {
-            endcount = TRUE;
-            cscore[PLAYER1] = gameinf.player[PLAYER1]->score;
-            if(gameinf.player[PLAYER2])
-                cscore[PLAYER2] = gameinf.player[PLAYER2]->score;
+            endCount = true;
+            cscore[PLAYER1] = gameinf.getPlayers()[PLAYER1]->getScore();
+            if (gameinf.getPlayers()[PLAYER2])
+                cscore[PLAYER2] = gameinf.getPlayers()[PLAYER2]->getScore();
         }
-        closing = TRUE;
-
+        isClosing = true;
     }
-    else
-        if(gameinf.player[PLAYER2])
-            if(input.Key(gameinf.keys[PLAYER2].shoot))
-            {
-                if(!endcount)
-                {
-                    endcount = TRUE;				
-                    cscore[PLAYER1] = gameinf.player[PLAYER1]->score;
-                    if(gameinf.player[PLAYER2])
-                        cscore[PLAYER2] = gameinf.player[PLAYER2]->score;
-                }
-                closing = TRUE;
-            }
-
-    if(closing)
+    else if (gameinf.getPlayers()[PLAYER2])
     {
-        if(yr1<240) yr1+=4;
-        if(yr2>241) yr2-=4;
+        if (input.key(gameinf.getKeys()[PLAYER2].shoot))
+        {
+            if (!endCount)
+            {
+                endCount = true;				
+                cscore[PLAYER1] = gameinf.getPlayers()[PLAYER1]->getScore();
+                if (gameinf.getPlayers()[PLAYER2])
+                    cscore[PLAYER2] = gameinf.getPlayers()[PLAYER2]->getScore();
+            }
+            isClosing = true;
+        }
+    }
+
+    if (isClosing)
+    {
+        if (yr1 < 240) yr1 += 4;
+        if (yr2 > 241) yr2 -= 4;
         else 
         {
-            endclose = TRUE;
-            //closing = FALSE;			
-            movingout = TRUE;
-            
+            endClose = true;
+            movingOut = true;
         }
     }
-    else
-        if(opening)
-        {
-            if(yr1>-32) yr1-=4;
-            if(yr2<481) yr2+=4;
-            else 
-            {
-                endopening = TRUE;
-                opening = FALSE;
-                movingout = TRUE;
-                return 0;
-            }
-        }
-
-    if(movingout)  // las letras que se van
+    else if (isOpening)
     {
-        if(xt1 < 640)
-            xt1 += 4;
-        else a = TRUE;
-
-        if(xt2 > -bmp.title2.sx)
-            xt2 -= 5;
-        else b = TRUE;
-
-        if(ynum < 480 )
-            ynum += 5;
-        else c = TRUE;
-
-        if(a&&b&&c)
+        if (yr1 > -32) yr1 -= 4;
+        if (yr2 < 481) yr2 += 4;
+        else 
         {
-            finish = TRUE;
-            opening = TRUE;
-            closing = FALSE;
-            movingout = FALSE;
+            endOpening = true;
+            isOpening = false;
+            movingOut = true;
+            return 0;
+        }
+    }
+
+    if (movingOut)
+    {
+        if (xt1 < 640)
+            xt1 += 4;
+        else a = true;
+
+        if (xt2 > -bmp.title2.getWidth())
+            xt2 -= 5;
+        else b = true;
+
+        if (ynum < 480)
+            ynum += 5;
+        else c = true;
+
+        if (a && b && c)
+        {
+            finish = true;
+            isOpening = true;
+            isClosing = false;
+            movingOut = false;
             return -1;
         }
     }
 
-    if(!endmove)
+    if (!endMove)
     {
-        if(xt1 < 250)
+        if (xt1 < 250)
             xt1 += 4;
-        else a = TRUE;
+        else a = true;
 
-        if(xt2 > 175)
+        if (xt2 > 175)
             xt2 -= 5;
-        else b = TRUE;
+        else b = true;
 
-        if(ynum < 100)
+        if (ynum < 100)
             ynum += 3;
-        else c = TRUE;
+        else c = true;
 
-        if(a&&b&&c) endmove = TRUE;
+        if (a && b && c) endMove = true;
     }
-    else
-        if(!endcount)
+    else if (!endCount)
+    {
+        cscore[PLAYER1]++;			
+
+        if (gameinf.getPlayers()[PLAYER2])
         {
-            cscore[PLAYER1]++;			
-
-            if(gameinf.player[PLAYER2])
+            if (cscore[PLAYER2] < gameinf.getPlayers()[PLAYER2]->getScore())
+                cscore[PLAYER2]++;
+            if (cscore[PLAYER1] >= gameinf.getPlayers()[PLAYER1]->getScore() &&
+                cscore[PLAYER2] >= gameinf.getPlayers()[PLAYER2]->getScore())
             {
-                if(cscore[PLAYER2] < gameinf.player[PLAYER2]->score)
-                    cscore[PLAYER2]++;
-                if(cscore[PLAYER1] >= gameinf.player[PLAYER1]->score &&
-                    cscore[PLAYER2] >= gameinf.player[PLAYER2]->score)
-                {
-                    endcount = TRUE;
-                    closing = TRUE;
-                }
+                endCount = true;
+                isClosing = true;
             }
-            else 
-                if(cscore[PLAYER1] >= gameinf.player[PLAYER1]->score)
-                {
-                    endcount = TRUE;
-                    closing = TRUE;
-                }
         }
+        else if (cscore[PLAYER1] >= gameinf.getPlayers()[PLAYER1]->getScore())
+        {
+            endCount = true;
+            isClosing = true;
+        }
+    }
 
-        return 1;
+    return 1;
 }
 
-int PSTAGECLEAR::Release()
+int StageClear::release()
 {
-    bmp.title1.Release();
-    bmp.title2.Release();
-
-        return 1;
+    bmp.title1.release();
+    bmp.title2.release();
+    return 1;
 }

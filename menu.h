@@ -1,45 +1,49 @@
-#ifndef MENU_H_
-#define MENU_H_
+#pragma once
 
-typedef struct PMNUBITMAPS
+#include "app.h"
+#include "graph.h"
+
+/**
+ * MenuBitmaps struct
+ * Contains sprites for the main menu.
+ */
+struct MenuBitmaps
 {
-    SPRITE title;
-    SPRITE optionPlay;
-    SPRITE optionConfig;
-    SPRITE optionExit;
-    SPRITE menuFont; // Textura de la fuente BMFont
-}PMENUBITMAPS;
-
-/*******************************************************
-    clase MENU
-
-    Clase Hija de PAPP, es un modulo del juego.
-
-    Es el menu principal del juego.
-*********************************************************/
-class PMENU : public PAPP
-{
-public:
-    
-    PMENUBITMAPS bmp;
-    int x, y; // posición del título
-    int selectedOption; // 0=JUGAR, 1=CONFIGURACION, 2=SALIR
-    BOOL visible; // parpadeo de la opción seleccionada
-    int cont; //contador para el parpadeo 
-    
-    // BMFont para el menú
-    BMFontLoader fontLoader;
-    BMFontRenderer fontRenderer;
-    
-    int Init();
-    int InitBitmaps();
-    void DrawTitle();
-    void DrawMenu();
-
-    void * MoveAll();
-    int DrawAll();
-    virtual void DrawDebugOverlay();
-    int Release();
+    Sprite title;
+    Sprite menuFont; // BMFont texture
 };
 
-#endif
+/**
+ * Menu class
+ * Main menu module of the game.
+ * Inherits from App.
+ *
+ * Child class of App; it is a game module.
+ * Represents the main menu of the game.
+ */
+class Menu : public App
+{
+private:
+    MenuBitmaps bmp;
+    int xPos, yPos; // title position
+    int selectedOption; // 0=PLAY, 1=CONFIGURATION, 2=EXIT
+    bool visible; // blinking of the selected option
+    int blinkCounter;
+
+public:
+    Menu();
+    virtual ~Menu() {}
+
+    int init() override;
+    int initBitmaps();
+    void drawTitle();
+    void drawMenu();
+
+    void* moveAll() override;
+    int drawAll() override;
+    void drawDebugOverlay() override;
+    int release() override;
+
+    // Getters for possible access
+    int getSelectedOption() const { return selectedOption; }
+};

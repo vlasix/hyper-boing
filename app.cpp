@@ -1,28 +1,30 @@
-#include <windows.h>
 #include <SDL.h>
+#include <cstdio>
+#include "app.h"
+#include "graph.h"
 #include "pang.h"
-#include <stdio.h>
 
-// Inicializar variables estáticas
-SPRITE* PAPP::sharedBackground = nullptr;
-int PAPP::scrollX = 0;
-int PAPP::scrollY = 0;
-bool PAPP::backgroundInitialized = false;
-bool PAPP::debugMode = false;
+// Initialize static variables
+Sprite* App::sharedBackground = nullptr;
+int App::scrollX = 0;
+int App::scrollY = 0;
+bool App::backgroundInitialized = false;
+bool App::debugMode = false;
 
-PAPP::PAPP()
+App::App()
+    : gameSpeed(0), fps(0), fpsv(0), active(true), pause(false), 
+      difTime1(0), difTime2(0), time1(0), time2(0)
 {		
 }
 
-int PAPP::Init()
+int App::init()
 {
-    // Inicialización común para todas las pantallas
-    active = TRUE;
-    pause = FALSE;
-    SetGameSpeed(60);
-    diftime1 = 0;
-    diftime2 = gamespeed;
-    time1 = SDL_GetTicks() + gamespeed;
+    active = true;
+    pause = false;
+    setGameSpeed(60);
+    difTime1 = 0;
+    difTime2 = gameSpeed;
+    time1 = SDL_GetTicks() + gameSpeed;
     time2 = SDL_GetTicks();
     fps = 0;
     fpsv = 0;
@@ -30,7 +32,7 @@ int PAPP::Init()
     return 1;
 }
 
-void PAPP::DrawDebugOverlay()
+void App::drawDebugOverlay()
 {
     if (!debugMode) return;
     
@@ -40,213 +42,186 @@ void PAPP::DrawDebugOverlay()
     int width = 400;
     int height = 300;
     
-    // Fondo semi-transparente para el texto de debug
-    SDL_SetRenderDrawBlendMode(graph.renderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(graph.renderer, 0, 0, 0, 180);
+    SDL_SetRenderDrawBlendMode(graph.getRenderer(), SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(graph.getRenderer(), 0, 0, 0, 180);
     SDL_Rect bgRect = {10, 10, width, height};
-    SDL_RenderFillRect(graph.renderer, &bgRect);
-    SDL_SetRenderDrawBlendMode(graph.renderer, SDL_BLENDMODE_NONE);
+    SDL_RenderFillRect(graph.getRenderer(), &bgRect);
+    SDL_SetRenderDrawBlendMode(graph.getRenderer(), SDL_BLENDMODE_NONE);
     
-    // FPS (información común para todas las pantallas)
     sprintf(cadena, "FPS = %d  FPSVIRT = %d", fps, fpsv);
-    graph.Text(cadena, 20, y);
+    graph.text(cadena, 20, y);
     y += lineHeight;
     
-    // Estado de pausa
     sprintf(cadena, "Paused = %s  Active = %s", 
             pause ? "YES" : "NO",
             active ? "YES" : "NO");
-    graph.Text(cadena, 20, y);
-    y += lineHeight;
+    graph.text(cadena, 20, y);
 }
 
-void PAPP::InitSharedBackground()
+void App::initSharedBackground()
 {
     if (!backgroundInitialized)
     {
-        sharedBackground = new SPRITE();
-        sharedBackground->Init(&graph, "graph\\titleback.png", 0, 0);
-        graph.SetColorKey(sharedBackground->bmp, RGB(255,0,0));
+        sharedBackground = new Sprite();
+        sharedBackground->init(&graph, "graph\\titleback.png", 0, 0);
+        graph.setColorKey(sharedBackground->getBmp(), 0xFF0000);
         scrollX = 0;
-        scrollY = sharedBackground->sy;
+        scrollY = sharedBackground->getHeight();
         backgroundInitialized = true;
     }
 }
 
-void PAPP::UpdateScrollingBackground()
+void App::updateScrollingBackground()
 {
     if (!backgroundInitialized || !sharedBackground) return;
     
-    if(scrollX < sharedBackground->sx) scrollX++;
+    if (scrollX < sharedBackground->getWidth()) scrollX++;
     else scrollX = 0;
 
-    if(scrollY > 0) scrollY--;
-    else scrollY = sharedBackground->sy;
+    if (scrollY > 0) scrollY--;
+    else scrollY = sharedBackground->getHeight();
 }
 
-void PAPP::DrawScrollingBackground()
+void App::drawScrollingBackground()
 {
     if (!backgroundInitialized || !sharedBackground) return;
     
     int i, j;
-    RECT rc, rcbx, rcby, rcq;
+    SDL_Rect rc, rcbx, rcby, rcq;
     
-    rc.left = scrollX;
-    rc.right = sharedBackground->sx;
-    rc.top = 0;
-    rc.bottom = scrollY;
+    rc.x = scrollX;
+    rc.w = sharedBackground->getWidth() - scrollX;
+    rc.y = 0;
+    rc.h = scrollY;
     
-    rcbx.left = 0;
-    rcbx.right = scrollX;
-    rcbx.top = 0;
-    rcbx.bottom = scrollY;
+    rcbx.x = 0;
+    rcbx.w = scrollX;
+    rcbx.y = 0;
+    rcbx.h = scrollY;
 
-    rcby.left = scrollX;
-    rcby.right = sharedBackground->sx;
-    rcby.top = scrollY;
-    rcby.bottom = sharedBackground->sy;
+    rcby.x = scrollX;
+    rcby.w = sharedBackground->getWidth() - scrollX;
+    rcby.y = scrollY;
+    rcby.h = sharedBackground->getHeight() - scrollY;
 
-    rcq.left = 0;
-    rcq.right = scrollX;
-    rcq.top = scrollY;
-    rcq.bottom = sharedBackground->sy;
+    rcq.x = 0;
+    rcq.w = scrollX;
+    rcq.y = scrollY;
+    rcq.h = sharedBackground->getHeight() - scrollY;
     
-    for(i=0; i<4; i++)
-        for(j=0; j<5; j++)
+    for (i = 0; i < 4; i++)
+        for (j = 0; j < 5; j++)
         {
-            graph.Draw(sharedBackground->bmp, &rc, sharedBackground->sx*i, (sharedBackground->sy*j)+sharedBackground->sy-scrollY);
-            graph.Draw(sharedBackground->bmp, &rcbx, (sharedBackground->sx*i)+rc.right-rc.left, (sharedBackground->sy*j)+sharedBackground->sy - scrollY);
-            graph.Draw(sharedBackground->bmp, &rcby, sharedBackground->sx*i, sharedBackground->sy*j);
-            graph.Draw(sharedBackground->bmp, &rcq, (sharedBackground->sx*i)+sharedBackground->sx-scrollX, sharedBackground->sy*j);
+            graph.draw(sharedBackground->getBmp(), &rc, sharedBackground->getWidth() * i, (sharedBackground->getHeight() * j) + sharedBackground->getHeight() - scrollY);
+            graph.draw(sharedBackground->getBmp(), &rcbx, (sharedBackground->getWidth() * i) + rc.w, (sharedBackground->getHeight() * j) + sharedBackground->getHeight() - scrollY);
+            graph.draw(sharedBackground->getBmp(), &rcby, sharedBackground->getWidth() * i, sharedBackground->getHeight() * j);
+            graph.draw(sharedBackground->getBmp(), &rcq, (sharedBackground->getWidth() * i) + sharedBackground->getWidth() - scrollX, sharedBackground->getHeight() * j);
         }
 }
 
-void PAPP::ReleaseSharedBackground()
+void App::releaseSharedBackground()
 {
     if (backgroundInitialized && sharedBackground)
     {
-        sharedBackground->Release();
+        sharedBackground->release();
         delete sharedBackground;
         sharedBackground = nullptr;
         backgroundInitialized = false;
     }
 }
 
-/*******************************************************
-  Esta funcion es primordial en juego.
-  Aqui se administra el numero de veces que se va a pintar, 
-  como maximo el establecido, y se calcularan tantas 
-  veces como se indique (variable gamespeed).
-
-  Por ejemplo, si queremos pintar 60 fotogramas por segundo
-  mediante un contador, controlaremos que  calculamos 60, 
-  y si nos da tiempo pintaremos 60, en caso de que tengamos
-  un equipo mas lento, tan solo pintaremos los que nuestro
-  ordenador pueda, pero la velocidad "virtual" del juego
-  seguira siendo de 60 fps.
-*******************************************************/
-void * PAPP::DoTick()
+/**
+ * This function is central to the game.
+ * It manages the number of times the screen is painted, up to the set maximum,
+ * and calculations are performed as many times as specified (gameSpeed variable).
+ *
+ * For example, if we want to render 60 frames per second using a counter,
+ * we ensure that 60 calculations are performed. If time permits, we render 60 frames;
+ * on slower systems, we render only as many as possible, but the "virtual" speed
+ * of the game remains 60 fps.
+ */
+void* App::doTick()
 {
     static short framestatus = 0;	
-    static short cont =0;
+    static short cont = 0;
     static long tick, lasttick;
 
     if (goback)
     {
-        goback = FALSE;
-        gameinf.menu = TRUE;
-        return (PAPP*) new PMENU;
+        goback = false;
+        gameinf.isMenu() = true;
+        return (App*) new Menu;
     }
 
-    if(framestatus==0)
+    if (framestatus == 0)
     {
-        time1=SDL_GetTicks();
-        diftime2=time1-time2;
-        if(diftime2< gamespeed) return NULL;
-        time2=time1;
-        diftime1+=diftime2;
-        framestatus=1;
-        return FALSE;
+        time1 = SDL_GetTicks();
+        difTime2 = time1 - time2;
+        if (difTime2 < gameSpeed) return nullptr;
+        time2 = time1;
+        difTime1 += difTime2;
+        framestatus = 1;
+        return nullptr;
     }
 
-    if (framestatus==1)
+    if (framestatus == 1)
     {
-        if(diftime1 < gamespeed)
+        if (difTime1 < gameSpeed)
         {
-            framestatus=2;
-            return NULL;
+            framestatus = 2;
+            return nullptr;
         }		
-        void * newscreen = (PAPP*) MoveAll();
-        diftime1-=gamespeed;
-        return (PAPP*) newscreen;
+        void* newscreen = (App*) moveAll();
+        difTime1 -= gameSpeed;
+        return newscreen;
     }
     
-    if(framestatus==2)
+    if (framestatus == 2)
     {
-        DrawAll();
-        framestatus=0;
-        tick=SDL_GetTicks();
-        if(tick-lasttick>1000)
+        drawAll();
+        framestatus = 0;
+        tick = SDL_GetTicks();
+        if (tick - lasttick > 1000)
         {
-          fps = cont;
+            fps = cont;
             cont = 0;
             lasttick = tick;
         }
         else
-            cont++; //Frames por segundo
+            cont++;
     }
 
-    return NULL;
+    return nullptr;
 }
 
-/*******************************************************
-    Si hacemos una pausa tenemos que actualizar estos datos
-    de manera que la funcion DoTick actue correctamente una vez
-    reanudemos el juego.
-*******************************************************/
-
-void PAPP::DoPause()
+/**
+ * If we pause, we need to update these data points so that the 
+ * doTick function behaves correctly once the game is resumed.
+ */
+void App::doPause()
 {	
-    diftime1=0; 
-    diftime2=gamespeed;
-    time1 = SDL_GetTicks()+gamespeed;
+    difTime1 = 0; 
+    difTime2 = gameSpeed;
+    time1 = SDL_GetTicks() + gameSpeed;
     time2 = SDL_GetTicks();
-
-
-    return;
 }
 
-/*******************************************************
-    Ajustamos la velocidad de pintado en fotogramas por segundo
-    y lo transformamos a los milisegundos que equivalen
-    por cada fotograma, que al fin y al cabo es el dato que
-    nos va a hacer falta.
-*********************************************************/
-void PAPP::SetGameSpeed(int speed)
+/**
+ * Adjust the rendering speed in frames per second and convert it to 
+ * the equivalent milliseconds per frame, which is the actual data needed.
+ */
+void App::setGameSpeed(int speed)
 {
-    gamespeed = 1000/speed;
+    gameSpeed = 1000 / speed;
 }
 
-/*******************************************************
-    Indicamos si nuestra aplicacion esta o no activa
-*********************************************************/
-void PAPP::SetActive(BOOL b)
+void App::setActive(bool b)
 {
     active = b;
 }
 
-void PAPP::SetPause(BOOL b)
+void App::setPause(bool b)
 {
     pause = b;
-}
-
-BOOL PAPP::IsActive()
-{
-    return active;
-}
-
-BOOL PAPP::IsPaused()
-{
-    return pause;
 }
 

@@ -1,197 +1,147 @@
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include "mlist.h"
 
-// -------------------- constructores -------------------------//
-
-MLIST::MLIST ()
+MList::MList()
+    : first(nullptr), last(nullptr), current(nullptr), lastPos(0), dimension(0)
 {
-    current = first = last = NULL;
-    lastpos = 0;
-    dimension = 0;
 }
 
-MLIST::~MLIST ( void )
+MList::~MList()
 {
-    first = last = NULL;
-    dimension = 0;
-    lastpos = 0;
+    release();
 }
 
-MLISTNODE::MLISTNODE ( void )
+MListNode::MListNode()
+    : next(nullptr), previous(nullptr), data(nullptr)
 {
-    next = NULL;
-    previous = NULL;
-    data = NULL;
 }
 
-
-//-------------------------------------------------------//
-void MLIST::Release ()
+void MList::release()
 {
-    MLISTNODE* n, * b;
-
-    n = first;
-    while ( n )
+    MListNode* n = first;
+    while (n)
     {
-        b = n;
-        n = n->next;
-        delete b;
+        MListNode* next = n->next;
+        delete n;
+        n = next;
     }
-    first = NULL;
-    last = NULL;
-    current = NULL;
+    first = nullptr;
+    last = nullptr;
+    current = nullptr;
     dimension = 0;
-    lastpos = 0;
+    lastPos = 0;
 }
 
-
-unsigned long MLIST::GetDimension ()
+MListNode* MList::insert(MListData* d)
 {
-    return dimension;
-}
-/////////////////////////////////////////////////////////////////
-
-MLISTNODE* MLIST::Insert ( MLISTDATA* d )
-{
-    MLISTNODE* n;
-
-    n = new MLISTNODE;
-    if ( n == NULL ) return NULL;
+    MListNode* n = new MListNode();
+    if (n == nullptr) return nullptr;
 
     n->data = d;
-    InsertNode ( n );
+    insertNode(n);
 
     return n;
 }
 
-MLISTNODE* MLIST::InsertBefore ( MLISTDATA* d, MLISTNODE* pos )
+MListNode* MList::insertBefore(MListData* d, MListNode* pos)
 {
-    MLISTNODE* n;
-
-    n = new MLISTNODE;
-    if ( n == NULL ) return NULL;
+    MListNode* n = new MListNode();
+    if (n == nullptr) return nullptr;
 
     n->data = d;
-    InsertNodeBefore ( n, pos );
+    insertNodeBefore(n, pos);
 
     return n;
 }
 
-MLISTNODE* MLIST::InsertAfter ( MLISTDATA* d, MLISTNODE* pos )
+MListNode* MList::insertAfter(MListData* d, MListNode* pos)
 {
-    MLISTNODE* n;
-
-    n = new MLISTNODE;
-    if ( n == NULL ) return NULL;
+    MListNode* n = new MListNode();
+    if (n == nullptr) return nullptr;
 
     n->data = d;
-    InsertNodeAfter ( n, pos );
+    insertNodeAfter(n, pos);
 
     return n;
 }
 
-MLISTNODE* MLIST::GetNextNode ()
+MListNode* MList::getNextNode()
 {
-    if ( current->next )
+    if (current && current->next)
     {
         current = current->next;
         return current;
     }
-    else return NULL;
+    return nullptr;
 }
 
-MLISTNODE* MLIST::GetPreviousNode ()
+MListNode* MList::getPreviousNode()
 {
-    if ( current->previous )
+    if (current && current->previous)
     {
         current = current->previous;
         return current;
     }
-    else return NULL;
+    return nullptr;
 }
 
-
-MLISTNODE* MLIST::GetNextNode ( MLISTNODE* n )
+MListNode* MList::getNextNode(MListNode* n) const
 {
-    return n->next;
+    return n ? n->next : nullptr;
 }
 
-MLISTNODE* MLIST::GetPreviousNode ( MLISTNODE* n )
+MListNode* MList::getPreviousNode(MListNode* n) const
 {
-    return n->previous;
+    return n ? n->previous : nullptr;
 }
 
-MLISTNODE* MLIST::GetFirstNode ( void )
+MListData MList::getNext(MListNode* n) const
 {
-    return first;
+    n = getNextNode(n);
+    return n ? n->data : nullptr;
 }
 
-MLISTNODE* MLIST::GetLastNode ( void )
+MListData MList::getPrevious(MListNode* n) const
 {
-    return last;
+    n = getPreviousNode(n);
+    return n ? n->data : nullptr;
 }
 
-MLISTDATA MLIST::GetNext ( MLISTNODE* n )
+MListData MList::getNext()
 {
-    n = GetNextNode ( n );
-    if ( n ) return n->data;
-    else return NULL;
+    MListNode* n = getNextNode();
+    return n ? n->data : nullptr;
 }
 
-MLISTDATA MLIST::GetPrevious ( MLISTNODE* n )
+MListData MList::getPrevious()
 {
-    n = GetPreviousNode ( n );
-    if ( n ) return n->data;
-    else return NULL;
+    MListNode* n = getPreviousNode();
+    return n ? n->data : nullptr;
 }
 
-MLISTDATA MLIST::GetNext ()
+MListData MList::getFirst()
 {
-    MLISTNODE* n;
-    n = GetNextNode ();
-    if ( n ) return n->data;
-    else return NULL;
+    current = first;
+    return current ? current->data : nullptr;
 }
 
-MLISTDATA MLIST::GetPrevious ()
+MListData MList::getLast()
 {
-    MLISTNODE* n;
-    n = GetPreviousNode ();
-    if ( n ) return n->data;
-    else return NULL;
+    current = last;
+    return current ? current->data : nullptr;
 }
 
-MLISTDATA MLIST::GetFirst ( void )
+MListData MList::get(unsigned long index)
 {
-    MLISTNODE* n = GetFirstNode ();
-    current = n;
-    if ( n ) return n->data;
-    else return NULL;
+    MListNode* n = getNode(index);
+    return n ? n->data : nullptr;
 }
 
-MLISTDATA MLIST::GetLast ( void )
+MListNode* MList::getNode(unsigned long index)
 {
-    MLISTNODE* n = GetLastNode ();
-    current = n;
-    if ( n ) return n->data;
-    else return NULL;
-}
-
-MLISTDATA MLIST::Get ( unsigned long index )
-{
-    MLISTNODE* n;
-
-    n = GetNode ( index );
-    return n->data;
-}
-
-MLISTNODE* MLIST::GetNode ( unsigned long index )
-{
-    MLISTNODE* n;
-
-    n = first;
-    while ( n && index )
+    MListNode* n = first;
+    while (n && index)
     {
         index--;
         n = n->next;
@@ -200,115 +150,107 @@ MLISTNODE* MLIST::GetNode ( unsigned long index )
     return n;
 }
 
-MLISTNODE* MLIST::Find ( MLISTDATA data )
+MListNode* MList::find(MListData data) const
 {
-    MLISTNODE* n;
-
-    n = first;
-    while ( n )
+    MListNode* n = first;
+    while (n)
     {
-        if ( n->data == data ) return n;
+        if (n->data == data) return n;
         n = n->next;
     }
-    return NULL;
+    return nullptr;
 }
 
-MLISTDATA MLIST::Find ( MLISTNODE* fn )
+MListData MList::find(MListNode* fn) const
 {
-    MLISTNODE* n;
-
-    n = first;
-    while ( n )
+    MListNode* n = first;
+    while (n)
     {
-        if ( n == fn ) return n->data;
+        if (n == fn) return n->data;
         n = n->next;
     }
-    return NULL;
+    return nullptr;
 }
 
-void MLIST::InsertNode ( MLISTNODE* n )
+void MList::insertNode(MListNode* n)
 {
-    if ( first == NULL ) // es el 1er elemento
+    if (first == nullptr)
     {
         first = n;
         last = n;
-        n->next = NULL;
-        n->previous = NULL;
+        n->next = nullptr;
+        n->previous = nullptr;
         current = n;
     }
     else
     {
         last->next = n;
         n->previous = last;
-        n->next = NULL;
+        n->next = nullptr;
         last = n;
     }
     dimension++;
 }
 
-void MLIST::InsertNodeBefore ( MLISTNODE* n, MLISTNODE* pos )
+void MList::insertNodeBefore(MListNode* n, MListNode* pos)
 {
-    if ( first == NULL )
+    if (first == nullptr || pos == nullptr)
     {
-        first = n;
-        last = n;
-        n->next = NULL;
-        n->previous = NULL;
-        current = n;
+        insertNode(n);
     }
     else
     {
         n->previous = pos->previous;
-        if ( pos->previous != NULL ) pos->previous->next = n;
+        if (pos->previous != nullptr) pos->previous->next = n;
         else first = n;
         pos->previous = n;
         n->next = pos;
+        dimension++;
     }
-    dimension++;
 }
 
-void MLIST::InsertNodeAfter ( MLISTNODE* n, MLISTNODE* pos )
+void MList::insertNodeAfter(MListNode* n, MListNode* pos)
 {
-    if ( first == NULL )
+    if (first == nullptr || pos == nullptr)
     {
-        first = n;
-        last = n;
-        n->next = NULL;
-        n->previous = NULL;
-        current = n;
+        insertNode(n);
     }
     else
     {
         n->next = pos->next;
-        if ( pos->next != NULL ) pos->next->previous = n;
+        if (pos->next != nullptr) pos->next->previous = n;
         else last = n;
         pos->next = n;
         n->previous = pos;
+        dimension++;
     }
-    dimension++;
 }
 
-void MLIST::DeleteNode ( MLISTNODE* n )
+void MList::deleteNode(MListNode* n)
 {
-    if ( n == first )
+    if (!n) return;
+
+    if (n == first)
     {
-        if ( n->next == NULL ) first = last = NULL;
+        if (n->next == nullptr) first = last = nullptr;
         else
         {
             first = n->next;
-            first->previous = NULL;
-            current = NULL;
+            first->previous = nullptr;
+            if (current == n) current = nullptr;
         }
     }
-    else if ( n == last )
+    else if (n == last)
     {
         last = n->previous;
-        last->next = NULL;
+        last->next = nullptr;
+        if (current == n) current = last;
     }
     else
     {
         n->previous->next = n->next;
         n->next->previous = n->previous;
+        if (current == n) current = n->next;
     }
     dimension--;
     delete n;

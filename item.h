@@ -1,25 +1,23 @@
-#ifndef ITEM_H_
-#define ITEM_H_
+#pragma once
 
-
-/********************************************************
-  clase ITEM
-
-  son los items del juego, que se pueden coger durante el
-  transcurso de la partida, y modifican las armas, paran 
-  el movimiento de las pelotas, etc.
-********************************************************/
-
-/*   CLASE NO IMPLEMENTADA    */
-
-class ITEM
+/**
+ * Item class
+ *
+ * These are the game items that can be collected during the game,
+ * which modify weapons, stop ball movement, etc.
+ * NOTE: This class is not fully implemented yet.
+ */
+class Item
 {
+private:
+    int x, y;
+    int id;
+
 public:
-	int x, y;
-	int id;
+    Item(int x, int y, int id);
+    ~Item();
 
-	ITEM(int _x, int _y, int _id);
-	~ITEM();
+    int getX() const { return x; }
+    int getY() const { return y; }
+    int getId() const { return id; }
 };
-
-#endif

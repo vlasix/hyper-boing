@@ -1,241 +1,209 @@
+#include <SDL.h>
+#include <SDL_image.h>
+#include <cstdio>
+#include <string>
 #include <iostream>
-#include "pang.h"
-//#include "wingdi.h"
+#include "graph.h"
+#include "bmfont.h" // For BmNumFont
 
-SDL_Rect toSDLRect ( const RECT& rect ) {
-    SDL_Rect sdlRect;
-    sdlRect.x = rect.left;
-    sdlRect.y = rect.top;
-    sdlRect.w = rect.right - rect.left;
-    sdlRect.h = rect.bottom - rect.top;
-    return sdlRect;
+// Helper function to convert older RECT usage if any remains
+static SDL_Rect toSDLRect(int x, int y, int w, int h) {
+    return { x, y, w, h };
 }
 
-// Main Initialization Function
-int GRAPH::Init ( const char* title, int _mode ) {
+int Graph::init(const char* title, int _mode) {
     mode = _mode;
 
-    if ( mode == RENDERMODE_NORMAL )
-        return InitNormal ( title );
+    if (mode == RENDERMODE_NORMAL)
+        return initNormal(title);
     else
-        return InitEx ( title );
+        return initEx(title);
 }
 
-// Normal Windowed Mode Initialization
-// Normal Windowed Mode Initialization
-int GRAPH::InitNormal ( const char* title ) {
-    if ( SDL_Init ( SDL_INIT_VIDEO ) < 0 ) {
-        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError () << std::endl;
+int Graph::initNormal(const char* title) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
-    // Add SDL_WINDOW_RESIZABLE for resizing
-    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE );
-    if ( window == nullptr ) {
-        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+    window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    if (window == nullptr) {
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
-    // Set Minimum size
     SDL_SetWindowMinimumSize(window, RES_X, RES_Y);
 
-    renderer = SDL_CreateRenderer ( window, -1, SDL_RENDERER_ACCELERATED );
-    if ( renderer == nullptr ) {
-        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == nullptr) {
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
-    // Set Logical Size for automatic scaling
     SDL_RenderSetLogicalSize(renderer, RES_X, RES_Y);
 
-    backBuffer = SDL_CreateTexture ( renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y );
-    if ( backBuffer == nullptr ) {
-        std::cerr << "Back buffer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+    backBuffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y);
+    if (backBuffer == nullptr) {
+        std::cerr << "Back buffer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
     return 1;
 }
 
-// Fullscreen Exclusive Mode Initialization
-int GRAPH::InitEx ( const char* title ) {
-    if ( SDL_Init ( SDL_INIT_VIDEO ) < 0 ) {
-        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError () << std::endl;
+int Graph::initEx(const char* title) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
-    // Use SDL_WINDOW_FULLSCREEN_DESKTOP for better compatibility
-    window = SDL_CreateWindow ( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_FULLSCREEN_DESKTOP );
-    if ( window == nullptr ) {
-        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+    window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, RES_X, RES_Y, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    if (window == nullptr) {
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
-    renderer = SDL_CreateRenderer ( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
-    if ( renderer == nullptr ) {
-        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (renderer == nullptr) {
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
-    // Set Logical Size for automatic scaling
     SDL_RenderSetLogicalSize(renderer, RES_X, RES_Y);
 
-    backBuffer = SDL_CreateTexture ( renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y );
-    if ( backBuffer == nullptr ) {
-        std::cerr << "Back buffer could not be created! SDL_Error: " << SDL_GetError () << std::endl;
+    backBuffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RES_X, RES_Y);
+    if (backBuffer == nullptr) {
+        std::cerr << "Back buffer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return 0;
     }
 
     return 1;
 }
 
-void GRAPH::SetFullScreen(bool fs)
-{
-    if(fs)
+void Graph::setFullScreen(bool fs) {
+    if (fs)
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     else
         SDL_SetWindowFullscreen(window, 0);
 }
 
-// Release resources
-void GRAPH::Release () {
-    if ( backBuffer ) {
-        SDL_DestroyTexture ( backBuffer );
+void Graph::release() {
+    if (backBuffer) {
+        SDL_DestroyTexture(backBuffer);
         backBuffer = nullptr;
     }
-    if ( renderer ) {
-        SDL_DestroyRenderer ( renderer );
+    if (renderer) {
+        SDL_DestroyRenderer(renderer);
         renderer = nullptr;
     }
-    if ( window ) {
-        SDL_DestroyWindow ( window );
+    if (window) {
+        SDL_DestroyWindow(window);
         window = nullptr;
     }
-    SDL_Quit ();
+    SDL_Quit();
 }
 
-
-void GRAPH::Draw ( SPRITE* spr, int x, int y ) {
+void Graph::draw(Sprite* spr, int x, int y) {
     SDL_Rect srcRect = { 0, 0, spr->sx, spr->sy };
     SDL_Rect dstRect = { x + spr->xoff, y + spr->yoff, spr->sx, spr->sy };
-    SDL_RenderCopy ( renderer, spr->bmp, &srcRect, &dstRect );
+    SDL_RenderCopy(renderer, spr->bmp, &srcRect, &dstRect);
 }
 
-void GRAPH::DrawScaled ( SPRITE* spr, int x, int y, int w, int h ) {
+void Graph::drawScaled(Sprite* spr, int x, int y, int w, int h) {
     SDL_Rect srcRect = { 0, 0, spr->sx, spr->sy };
     SDL_Rect dstRect = { x + spr->xoff, y + spr->yoff, w, h };
-    SDL_RenderCopy ( renderer, spr->bmp, &srcRect, &dstRect );
+    SDL_RenderCopy(renderer, spr->bmp, &srcRect, &dstRect);
 }
 
-void GRAPH::Draw ( SDL_Texture* texture, RECT* rect, int x, int y ) {
-    SDL_Rect srcRect = toSDLRect ( *rect );
-    SDL_Rect dstRect = { x, y, srcRect.w, srcRect.h };
-
-    // SDL_QueryTexture ( texture, NULL, NULL, &dstRect.w, &dstRect.h ); // ?????
-    SDL_RenderCopy ( renderer, texture, &srcRect, &dstRect );
+void Graph::draw(SDL_Texture* texture, const SDL_Rect* srcRect, int x, int y) {
+    SDL_Rect dstRect = { x, y, srcRect->w, srcRect->h };
+    SDL_RenderCopy(renderer, texture, srcRect, &dstRect);
 }
 
+void Graph::drawClipped(SDL_Texture* texture, const SDL_Rect* srcRect, int x, int y) {
+    SDL_Rect newSrc = *srcRect;
+    int sx = srcRect->w;
+    int sy = srcRect->h;
 
-void GRAPH::DrawClipped ( SDL_Texture* texture, RECT* rect, int x, int y ) {
-    SDL_Rect srcRect = toSDLRect ( *rect );
-    int sx = srcRect.w;
-    int sy = srcRect.h;
-
-    if ( x < 0 ) {
-        srcRect.x = -x;
-        srcRect.w = sx + x;
+    if (x < 0) {
+        newSrc.x += -x; // Fixed from srcRect.x = -x; assuming offset
+        newSrc.w = sx + x;
         x = 0;
     }
-    if ( x + sx > 640 ) {
-        srcRect.w = 640 - x;
+    if (x + sx > 640) {
+        newSrc.w = 640 - x;
     }
-    if ( y < 0 ) {
-        srcRect.y = -y;
-        srcRect.h = sy + y;
+    if (y < 0) {
+        newSrc.y += -y;
+        newSrc.h = sy + y;
         y = 0;
     }
-    if ( y + sy > 480 ) {
-        srcRect.h = 480 - y;
+    if (y + sy > 480) {
+        newSrc.h = 480 - y;
     }
 
-    SDL_Rect dstRect = { x, y, srcRect.w, srcRect.h };
-    SDL_RenderCopy ( renderer, texture, &srcRect, &dstRect );
+    SDL_Rect dstRect = { x, y, newSrc.w, newSrc.h };
+    SDL_RenderCopy(renderer, texture, &newSrc, &dstRect);
 }
 
-void GRAPH::DrawClipped ( SPRITE* spr, int x, int y ) {
+void Graph::drawClipped(Sprite* spr, int x, int y) {
     SDL_Rect srcRect = { 0, 0, spr->sx, spr->sy };
 
-    if ( x < 0 ) {
+    if (x < 0) {
         srcRect.x = -x;
         srcRect.w = spr->sx + x;
         x = 0;
     }
-    if ( x + spr->sx > 640 ) {
+    if (x + spr->sx > 640) {
         srcRect.w = 640 - x;
     }
-    if ( y < 0 ) {
+    if (y < 0) {
         srcRect.y = -y;
         srcRect.h = spr->sy + y;
         y = 0;
     }
-    if ( y + spr->sy > 480 ) {
+    if (y + spr->sy > 480) {
         srcRect.h = 480 - y;
     }
 
     SDL_Rect dstRect = { x + spr->xoff, y + spr->yoff, srcRect.w, srcRect.h };
-    SDL_RenderCopy ( renderer, spr->bmp, &srcRect, &dstRect );
+    SDL_RenderCopy(renderer, spr->bmp, &srcRect, &dstRect);
 }
 
-void GRAPH::Draw ( BMNUMFONT* font, int num, int x, int y ) {
-    RECT srcRect;
+void Graph::draw(BmNumFont* font, int num, int x, int y) {
     char cad[16];
-    int n, i;
+    sprintf(cad, "%d", num);
+    draw(font, cad, x, y);
+}
+
+void Graph::draw(BmNumFont* font, const std::string& cad, int x, int y) {
+    SDL_Rect srcRect;
     int esp = 0;
 
-    sprintf ( cad, "%d", num );
-    n = strlen ( cad );
-
-    for ( i = 0; i < n; i++ ) {
-        srcRect = font->GetRect ( cad[i] );
-        //SDL_Rect sdlRect = toSDLRect ( srcRect );
-        Draw ( font->spr->bmp, &srcRect, x + esp, y );
-        esp += srcRect.right - srcRect.left;
+    for (char c : cad) {
+        srcRect = font->getRect(c);
+        draw(font->getSprite()->getBmp(), &srcRect, x + esp, y);
+        esp += srcRect.w;
     }
 }
 
-void GRAPH::Draw ( BMNUMFONT* font, char cad[], int x, int y ) {
-    RECT srcRect;
-    int n, i;
+void Graph::drawClipped(BmNumFont* font, const std::string& cad, int x, int y) {
+    SDL_Rect srcRect;
     int esp = 0;
 
-    n = strlen ( cad );
-
-    for ( i = 0; i < n; i++ ) {
-        srcRect = font->GetRect ( cad[i] );
-        Draw ( font->spr->bmp, &srcRect, x + esp, y );
-        esp += srcRect.right - srcRect.left;
+    for (char c : cad) {
+        srcRect = font->getRect(c);
+        drawClipped(font->getSprite()->getBmp(), &srcRect, x + esp, y);
+        esp += srcRect.w;
     }
 }
 
-void GRAPH::DrawClipped ( BMNUMFONT* font, char cad[], int x, int y ) {
-    RECT srcRect;
-    int n, i;
-    int esp = 0;
-
-    n = strlen ( cad );
-
-    for ( i = 0; i < n; i++ ) {
-        srcRect = font->GetRect ( cad[i] );
-        DrawClipped ( font->spr->bmp, &srcRect, x + esp, y );
-        esp += srcRect.right - srcRect.left;
-    }
+void Graph::flip() {
+    SDL_RenderPresent(renderer);
 }
 
-void GRAPH::Flip () {
-    SDL_RenderPresent ( renderer );
-}
+void Graph::text(const char texto[], int x, int y) {
 
-void GRAPH::Text ( const char texto[], int x, int y ) {
     static const unsigned char font5x7[95][7] = {
         {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // space
         {0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x20}, // !
@@ -330,130 +298,95 @@ void GRAPH::Text ( const char texto[], int x, int y ) {
         {0x00, 0x00, 0xF8, 0x10, 0x20, 0x40, 0xF8}  // z
     };
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor ( renderer, 255, 255, 255, 255 );
     int currentX = x;
     int charWidth = 6;
     int charHeight = 8;
     int scale = 2; // Make it more readable
 
-    for (int i = 0; texto[i] != '\0'; i++) {
+    for ( int i = 0; texto[i] != '\0'; i++ ) {
         unsigned char c = (unsigned char)texto[i];
-        if (c < 32 || c > 126) {
-           currentX += charWidth * scale;
-           continue;
+        if ( c < 32 || c > 126 ) {
+            currentX += charWidth * scale;
+            continue;
         }
-        
+
         int idx = c - 32;
-        for (int row = 0; row < 7; row++) {
+        for ( int row = 0; row < 7; row++ ) {
             unsigned char bits = font5x7[idx][row];
-            for (int col = 0; col < 5; col++) {
-                if (bits & (0x80 >> col)) {
+            for ( int col = 0; col < 5; col++ ) {
+                if ( bits & ( 0x80 >> col ) ) {
                     SDL_Rect pixel = { currentX + col * scale, y + row * scale, scale, scale };
-                    SDL_RenderFillRect(renderer, &pixel);
+                    SDL_RenderFillRect ( renderer, &pixel );
                 }
             }
         }
         currentX += charWidth * scale;
     }
 }
-void GRAPH::Rectangle ( int a, int b, int c, int d ) {
+
+void Graph::rectangle(int a, int b, int c, int d) {
     SDL_Rect rect = { a, b, c - a, d - b };
-    SDL_RenderDrawRect ( renderer, &rect );
+    SDL_RenderDrawRect(renderer, &rect);
 }
 
-
-/****************************************************************/
-/***				OPERACIONES CON BITMAPS					*****/
-/****************************************************************/
-
-void GRAPH::LoadBitmap ( SPRITE* spr, const char* szBitmap )
-{
-    //The final texture
-    SDL_Texture* newTexture = NULL;
-
-    //Load image at specified path
-    SDL_Surface* loadedSurface = IMG_Load ( szBitmap );
-    if ( loadedSurface == NULL )
-    {
-        printf ( "Unable to load image %s! SDL_image Error: %s\n", szBitmap, IMG_GetError () );
+void Graph::loadBitmap(Sprite* spr, const char* szBitmap) {
+    SDL_Surface* loadedSurface = IMG_Load(szBitmap);
+    if (loadedSurface == nullptr) {
+        printf("Unable to load image %s! SDL_image Error: %s\n", szBitmap, IMG_GetError());
+        return;
     }
-    else
-    {
-        // TODO: this mask should be passed as param
-        SDL_SetColorKey ( loadedSurface, SDL_TRUE, 0x00FF0000 );
 
-        //Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface ( renderer, loadedSurface );
-        if ( newTexture == NULL )
-        {
-            printf ( "Unable to create texture from %s! SDL Error: %s\n", szBitmap, SDL_GetError () );
-        }
-
+    SDL_SetColorKey(loadedSurface, SDL_TRUE, 0x00FF0000);
+    SDL_Texture* newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+    if (newTexture == nullptr) {
+        printf("Unable to create texture from %s! SDL Error: %s\n", szBitmap, SDL_GetError());
+    } else {
         spr->bmp = newTexture;
         spr->sx = loadedSurface->w;
         spr->sy = loadedSurface->h;
-
-        //Get rid of old loaded surface
-        SDL_FreeSurface ( loadedSurface );
     }
-
+    SDL_FreeSurface(loadedSurface);
 }
 
-
-HRESULT GRAPH::CopyBitmap ( SDL_Texture* texture, SDL_Surface* surface, int x, int y, int dx, int dy ) {
-    if ( texture == nullptr || surface == nullptr ) {
-        return E_FAIL;
-    }
+bool Graph::copyBitmap(SDL_Texture*& texture, SDL_Surface* surface, int x, int y, int dx, int dy) {
+    if (surface == nullptr) return false;
 
     SDL_Rect srcRect = { x, y, dx, dy };
-    SDL_Rect dstRect = { 0, 0, dx, dy }; // Destination rect starts at the top-left corner
+    SDL_Rect dstRect = { 0, 0, dx, dy };
 
-    // Create texture from surface
-    texture = SDL_CreateTextureFromSurface ( renderer, surface );
-    if ( texture == nullptr ) {
-        std::cerr << "Failed to create texture from surface: " << SDL_GetError () << std::endl;
-        return E_FAIL;
-    }
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (texture == nullptr) return false;
 
-    // Copy the surface onto the texture
-    if ( SDL_RenderCopy ( renderer, texture, &srcRect, &dstRect ) != 0 ) {
-        std::cerr << "Failed to copy surface to texture: " << SDL_GetError () << std::endl;
-        return E_FAIL;
-    }
-
-    return S_OK;
+    return SDL_RenderCopy(renderer, texture, &srcRect, &dstRect) == 0;
 }
 
-
-Uint32 GRAPH::ColorMatch ( SDL_Surface* surface, Uint32 rgb ) {
-    Uint32 result = SDL_MapRGB ( surface->format, GetRValue ( rgb ), GetGValue ( rgb ), GetBValue ( rgb ) );
-    return result;
+Uint32 Graph::colorMatch(SDL_Surface* surface, Uint32 rgb) {
+    // Note: GetRValue etc are Windows macros, using manual shifts or SDL
+    return SDL_MapRGB(surface->format, (rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
 }
 
-HRESULT GRAPH::SetColorKey ( SDL_Texture* texture, Uint32 rgb ) {
-
-    // Set the color key
-    //SDL_SetColorKey ( texture, SDL_TRUE, rgb );
-
-    return S_OK;
+bool Graph::setColorKey(SDL_Texture* texture, Uint32 rgb) {
+    return true; // SDL2 handles color key during surface->texture conversion
 }
 
-
-
-//================================================
-void SPRITE::Init(GRAPH *gr, char file[], int offx, int offy)
-{
-	graph = gr;
-	graph->LoadBitmap( this, file);
-
-	xoff = offx;
-	yoff = offy;
+/**
+ * Sprite initialization
+ *
+ * xoff and yoff are used to align the sprite within its bounding box.
+ * This is useful to avoid the "Saint Vitus dance" (jittery animations)
+ * caused by inconsistent sprite dimensions.
+ */
+void Sprite::init(Graph* gr, const std::string& file, int offx, int offy) {
+    graph = gr;
+    graph->loadBitmap(this, file.c_str());
+    xoff = offx;
+    yoff = offy;
 }
 
-void SPRITE::Release ( )
-{
-    if ( bmp != NULL ) {
-        SDL_DestroyTexture ( bmp );
-        bmp = NULL;
+void Sprite::release() {
+    if (bmp != nullptr) {
+        SDL_DestroyTexture(bmp);
+        bmp = nullptr;
     }
 }

@@ -1,21 +1,25 @@
-#ifndef __CONFIGDATA_H__
-#define __CONFIGDATA_H__
+#pragma once
 
-class CONFIGDATA
+#include <string>
+
+/**
+ * ConfigData class
+ *
+ * Handles loading and saving game configuration to a file.
+ */
+class ConfigData
 {
 public:
-    CONFIGDATA();
-    ~CONFIGDATA();
+    ConfigData();
+    ~ConfigData();
 
-    int Load();
-    int Save();
+    bool load();
+    bool save();
 
 private:
-    void SetDefaults();
-    char configPath[1024];
+    void loadDefaults();
+    std::string configPath;
     
     // Helper to get the path
-    void InitPath();
+    void initPath();
 };
-
-#endif

@@ -2,131 +2,111 @@
 #include "configscreen.h"
 #include "configdata.h"
 #include <SDL.h>
-#include <stdio.h>
+#include <cstdio>
+#include <cstring>
 
-extern GRAPH graph;
-extern MINPUT input;
-extern PGAMEINFO gameinf;
-extern int globalmode;
-
-PCONFIGSCREEN::PCONFIGSCREEN()
+ConfigScreen::ConfigScreen()
+    : state(ConfigState::Normal), selectedOption(0), waitingForKey(-1), tempRenderMode(0)
 {
-    state = CONFIG_NORMAL;
-    selectedOption = 0;
-    waitingForKey = -1;
+    std::memset(tempKeys, 0, sizeof(tempKeys));
 }
 
-int PCONFIGSCREEN::Init()
+int ConfigScreen::init()
 {
-    // Llamar a la inicialización base
-    PAPP::Init();
+    App::init();
+    App::initSharedBackground();
     
-    // Inicializar el fondo compartido si no está ya
-    PAPP::InitSharedBackground();
-    
-    // Copiar las teclas actuales a las temporales
     for (int player = 0; player < 2; player++)
     {
-        tempKeys[player][0] = gameinf.keys[player].left;
-        tempKeys[player][1] = gameinf.keys[player].right;
-        tempKeys[player][2] = gameinf.keys[player].shoot;
+        tempKeys[player][0] = gameinf.getKeys()[player].left;
+        tempKeys[player][1] = gameinf.getKeys()[player].right;
+        tempKeys[player][2] = gameinf.getKeys()[player].shoot;
     }
     
-    // Copiar el modo de renderizado actual
     tempRenderMode = globalmode;
+
+    if ( fontLoader.load ( "graph\\font\\monospaced_10.fnt" ) )
+    {
+        fontBmp.init ( &graph, "graph\\font\\monospaced_10.png", 0, 0 );
+        fontRenderer.init ( &graph, &fontLoader, &fontBmp);
+        //fontRenderer.setColor(255, 255, 0, 255); // Yellow
+        fontRenderer.setScale(2.0f); // Scale 2x for readability
+    }
     
     return 1;
 }
 
-void * PCONFIGSCREEN::MoveAll()
+void* ConfigScreen::moveAll()
 {
-    // Actualizar el fondo scrolling
-    PAPP::UpdateScrollingBackground();
+    App::updateScrollingBackground();
     
-    if (state == CONFIG_WAITING_KEY)
+    if (state == ConfigState::WaitingKey)
     {
-        // Esperando a que el usuario pulse una tecla
-        const Uint8* keystate = SDL_GetKeyboardState(NULL);
+        const Uint8* keystate = SDL_GetKeyboardState(nullptr);
         
-        // Buscar cualquier tecla pulsada
-        for (int i = SDL_SCANCODE_A; i < SDL_NUM_SCANCODES; i++)
+        for (int i = (int)SDL_SCANCODE_A; i < (int)SDL_NUM_SCANCODES; i++)
         {
             SDL_Scancode scancode = static_cast<SDL_Scancode>(i);
             if (keystate[scancode])
             {
-                // Asignar la tecla
                 int player = selectedOption / 3;
                 int keyIndex = selectedOption % 3;
                 tempKeys[player][keyIndex] = scancode;
                 
-                state = CONFIG_NORMAL;
-                
-                // Esperar a que se suelte la tecla
+                state = ConfigState::Normal;
                 SDL_Delay(200);
                 break;
             }
         }
         
-        // ESC para cancelar la espera
-        if (input.Key(SDL_SCANCODE_ESCAPE))
+        if (input.key(SDL_SCANCODE_ESCAPE))
         {
-            state = CONFIG_NORMAL;
+            state = ConfigState::Normal;
             SDL_Delay(200);
         }
     }
-    else // CONFIG_NORMAL
+    else
     {
-        // Navegación con teclas
         static bool upPressed = false;
         static bool downPressed = false;
         static bool leftPressed = false;
         static bool rightPressed = false;
         
-        if (input.Key(SDL_SCANCODE_UP))
+        if (input.key(SDL_SCANCODE_UP))
         {
             if (!upPressed)
             {
                 selectedOption--;
-                if (selectedOption < 0)
-                    selectedOption = 6; // 7 opciones (0-6)
+                if (selectedOption < 0) selectedOption = 6;
                 upPressed = true;
             }
         }
-        else
-        {
-            upPressed = false;
-        }
+        else upPressed = false;
         
-        if (input.Key(SDL_SCANCODE_DOWN))
+        if (input.key(SDL_SCANCODE_DOWN))
         {
             if (!downPressed)
             {
                 selectedOption++;
-                if (selectedOption > 6)
-                    selectedOption = 0;
+                if (selectedOption > 6) selectedOption = 0;
                 downPressed = true;
             }
         }
-        else
-        {
-            downPressed = false;
-        }
+        else downPressed = false;
         
-        // Enter para cambiar la tecla seleccionada (excepto en modo pantalla)
-        if (input.Key(SDL_SCANCODE_RETURN))
+        if (input.key(SDL_SCANCODE_RETURN))
         {
-            if(selectedOption < 6) // Solo para las teclas, no para el modo
+            if (selectedOption < 6)
             {
-                state = CONFIG_WAITING_KEY;
+                state = ConfigState::WaitingKey;
                 waitingForKey = selectedOption;
                 SDL_Delay(200);
             }
         }
         
-        // Flechas izquierda/derecha para cambiar el modo de pantalla
-        if(selectedOption == 6) // Modo de pantalla
+        if (selectedOption == 6)
         {
-            if (input.Key(SDL_SCANCODE_LEFT))
+            if (input.key(SDL_SCANCODE_LEFT))
             {
                 if (!leftPressed)
                 {
@@ -134,10 +114,9 @@ void * PCONFIGSCREEN::MoveAll()
                     leftPressed = true;
                 }
             }
-            else
-                leftPressed = false;
+            else leftPressed = false;
                 
-            if (input.Key(SDL_SCANCODE_RIGHT))
+            if (input.key(SDL_SCANCODE_RIGHT))
             {
                 if (!rightPressed)
                 {
@@ -145,193 +124,160 @@ void * PCONFIGSCREEN::MoveAll()
                     rightPressed = true;
                 }
             }
-            else
-                rightPressed = false;
+            else rightPressed = false;
         }
         
-        // F1 para guardar y salir
-        if (input.Key(SDL_SCANCODE_F1))
+        if (input.key(SDL_SCANCODE_F1))
         {
-            SaveConfiguration();
-            return new PMENU();
+            saveConfiguration();
+            return new Menu();
         }
         
-        // ESC para cancelar y volver al menú
-        if (input.Key(SDL_SCANCODE_ESCAPE))
+        if (input.key(SDL_SCANCODE_ESCAPE))
         {
-            CancelConfiguration();
-            return new PMENU();
+            cancelConfiguration();
+            return new Menu();
         }
     }
     
-    return NULL;
+    return nullptr;
 }
 
-int PCONFIGSCREEN::DrawAll()
+int ConfigScreen::drawAll()
 {
-    // Establecer el render target al backbuffer
-    //SDL_SetRenderTarget(graph.renderer, graph.backBuffer);
-    
-    // Dibujar el fondo scrolling compartido
-    PAPP::DrawScrollingBackground();
-    
-    // Dibujar la interfaz de configuración encima
-    DrawUI();
-    
-    // Dibujar información de debug si está activada
-    DrawDebugOverlay();
-    
-    graph.Flip();
-    
+    App::drawScrollingBackground();
+    drawUI();
+    drawDebugOverlay();
+    graph.flip();
     return 1;
 }
 
-void PCONFIGSCREEN::DrawUI()
+void ConfigScreen::drawUI()
 {
     int y = 50;
     int xLabel = 80;
     int xKey = 320;
     int lineHeight = 25;
     
-    // Título
-    DrawText("CONFIGURACION", 220, 10, false);
+    drawText("CONFIGURATION", 220, 10, false);
     
-    // Separador
-    SDL_SetRenderDrawColor(graph.renderer, 255, 255, 255, 255);
-    SDL_RenderDrawLine(graph.renderer, 60, 40, 580, 40);
+    SDL_SetRenderDrawColor(graph.getRenderer(), 255, 255, 255, 255);
+    SDL_RenderDrawLine(graph.getRenderer(), 60, 40, 580, 40);
     
-    // Jugador 1
-    DrawText("JUGADOR 1:", xLabel, y, false);
+    drawText("PLAYER 1:", xLabel, y, false);
     y += lineHeight;
     
-    DrawText("Izquierda:", xLabel + 20, y, selectedOption == 0);
-    DrawKeyName(tempKeys[0][0], xKey, y);
+    drawText("Left:", xLabel + 20, y, selectedOption == 0);
+    drawKeyName(tempKeys[0][0], xKey, y);
     y += lineHeight;
     
-    DrawText("Derecha:", xLabel + 20, y, selectedOption == 1);
-    DrawKeyName(tempKeys[0][1], xKey, y);
+    drawText("Right:", xLabel + 20, y, selectedOption == 1);
+    drawKeyName(tempKeys[0][1], xKey, y);
     y += lineHeight;
     
-    DrawText("Disparar:", xLabel + 20, y, selectedOption == 2);
-    DrawKeyName(tempKeys[0][2], xKey, y);
+    drawText("Shoot:", xLabel + 20, y, selectedOption == 2);
+    drawKeyName(tempKeys[0][2], xKey, y);
     y += lineHeight + 10;
     
-    // Jugador 2
-    DrawText("JUGADOR 2:", xLabel, y, false);
+    drawText("PLAYER 2:", xLabel, y, false);
     y += lineHeight;
     
-    DrawText("Izquierda:", xLabel + 20, y, selectedOption == 3);
-    DrawKeyName(tempKeys[1][0], xKey, y);
+    drawText("Left:", xLabel + 20, y, selectedOption == 3);
+    drawKeyName(tempKeys[1][0], xKey, y);
     y += lineHeight;
     
-    DrawText("Derecha:", xLabel + 20, y, selectedOption == 4);
-    DrawKeyName(tempKeys[1][1], xKey, y);
+    drawText("Right:", xLabel + 20, y, selectedOption == 4);
+    drawKeyName(tempKeys[1][1], xKey, y);
     y += lineHeight;
     
-    DrawText("Disparar:", xLabel + 20, y, selectedOption == 5);
-    DrawKeyName(tempKeys[1][2], xKey, y);
+    drawText("Shoot:", xLabel + 20, y, selectedOption == 5);
+    drawKeyName(tempKeys[1][2], xKey, y);
     y += lineHeight + 10;
     
-    // Separador
-    SDL_SetRenderDrawColor(graph.renderer, 255, 255, 255, 255);
-    SDL_RenderDrawLine(graph.renderer, 60, y, 580, y);
+    SDL_SetRenderDrawColor(graph.getRenderer(), 255, 255, 255, 255);
+    SDL_RenderDrawLine(graph.getRenderer(), 60, y, 580, y);
     y += 10;
     
-    // Modo de pantalla
-    DrawText("Modo de Pantalla:", xLabel, y, selectedOption == 6);
-    const char* modeText = (tempRenderMode == RENDERMODE_NORMAL) ? "Ventana" : "Pantalla Completa";
-    DrawText(modeText, xKey, y, false);
+    drawText("Screen Mode:", xLabel, y, selectedOption == 6);
+    const char* modeText = (tempRenderMode == RENDERMODE_NORMAL) ? "Windowed" : "Fullscreen";
+    drawText(modeText, xKey, y, false);
     y += lineHeight + 10;
     
-    // Instrucciones
-    SDL_SetRenderDrawColor(graph.renderer, 255, 255, 255, 255);
-    SDL_RenderDrawLine(graph.renderer, 60, y, 580, y);
+    SDL_SetRenderDrawColor(graph.getRenderer(), 255, 255, 255, 255);
+    SDL_RenderDrawLine(graph.getRenderer(), 60, y, 580, y);
     y += 10;
     
-    if (state == CONFIG_WAITING_KEY)
+    if (state == ConfigState::WaitingKey)
     {
-        DrawText("Pulsa una tecla... (ESC para cancelar)", 120, y, false);
+        drawText("Press a key... (ESC to cancel)", 120, y, false);
     }
     else
     {
-        DrawText("Flechas: Navegar  |  ENTER: Cambiar tecla", 80, y, false);
-        DrawText("F1: Guardar  |  ESC: Cancelar", 160, y + 15, false);
+        drawText("Arrows: Navigate  |  ENTER: Change key", 80, y, false);
+        drawText("F1: Save  |  ESC: Cancel", 160, y + 15, false);
     }
 }
 
-void PCONFIGSCREEN::DrawDebugOverlay()
+void ConfigScreen::drawDebugOverlay()
 {
     if (!debugMode) return;
-    
-    PAPP::DrawDebugOverlay(); // Base: FPS, pause state
-        
-    // Debug específico de la pantalla de configuración
+    App::drawDebugOverlay();
     char cadena[256];
-    int y = 80; // Después del overlay base
-    
-    sprintf(cadena, "Selected = %d  State = %d  WaitingKey = %d", 
-            selectedOption, state, waitingForKey);
-    graph.Text(cadena, 20, y);
+    int y = 80;
+    std::sprintf(cadena, "Selected = %d  State = %d", 
+            selectedOption, (int)state);
+    graph.text(cadena, 20, y);
 }
 
-void PCONFIGSCREEN::DrawText(const char* text, int x, int y, bool selected)
+void ConfigScreen::drawText(const char* text, int x, int y, bool selected)
 {
     if (selected)
     {
-        // Dibujar indicador de selección
-        SDL_SetRenderDrawColor(graph.renderer, 255, 255, 0, 255);
-        SDL_Rect selRect = {x - 10, y, 5, 16};
-        SDL_RenderFillRect(graph.renderer, &selRect);
+        SDL_SetRenderDrawColor(graph.getRenderer(), 255, 255, 0, 255);
+        SDL_Rect selRect = { x - 10, y+10, 5, 16 };
+        SDL_RenderFillRect(graph.getRenderer(), &selRect);
     }
-    
-    // Usar graph.Text si está disponible
-    graph.Text(text, x, y);
+    fontRenderer.text(text, x, y);
 }
 
-void PCONFIGSCREEN::DrawKeyName(SDL_Scancode key, int x, int y)
+void ConfigScreen::drawKeyName(SDL_Scancode key, int x, int y)
 {
-    const char* keyName = GetKeyName(key);
-    graph.Text(keyName, x, y);
+    const char* name = getKeyName(key);
+    fontRenderer.text(name, x, y);
 }
 
-const char* PCONFIGSCREEN::GetKeyName(SDL_Scancode scancode)
+const char* ConfigScreen::getKeyName(SDL_Scancode scancode) const
 {
     const char* name = SDL_GetScancodeName(scancode);
     return name ? name : "Unknown";
 }
 
-void PCONFIGSCREEN::SaveConfiguration()
+void ConfigScreen::saveConfiguration()
 {
-    // Guardar las teclas configuradas
     for (int player = 0; player < 2; player++)
     {
-        gameinf.keys[player].SetLeft(tempKeys[player][0]);
-        gameinf.keys[player].SetRight(tempKeys[player][1]);
-        gameinf.keys[player].SetShoot(tempKeys[player][2]);
+        gameinf.getKeys()[player].setLeft(tempKeys[player][0]);
+        gameinf.getKeys()[player].setRight(tempKeys[player][1]);
+        gameinf.getKeys()[player].setShoot(tempKeys[player][2]);
     }
     
-    // Guardar el modo de renderizado y aplicarlo inmediatamente
     int oldMode = globalmode;
     globalmode = tempRenderMode;
     
-    // Aplicar el cambio de fullscreen si cambió
     if (oldMode != globalmode)
     {
         bool isFullscreen = (globalmode == RENDERMODE_EXCLUSIVE);
-        graph.SetFullScreen(isFullscreen);
+        graph.setFullScreen(isFullscreen);
     }
     
-    // Guardar la configuración a disco
-    config.Save();
+    config.save();
 }
 
-void PCONFIGSCREEN::CancelConfiguration()
+void ConfigScreen::cancelConfiguration()
 {
-    // No hacer nada, las configuraciones temporales se descartan
 }
 
-int PCONFIGSCREEN::Release()
+int ConfigScreen::release()
 {
-    delete this;
     return 1;
 }

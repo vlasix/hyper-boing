@@ -1,69 +1,76 @@
-#ifndef MLIST_H_
-#define MLIST_H_
+#pragma once
 
+typedef void* MListData;
 
-typedef void* MLISTDATA;
-
-class MLISTNODE
+/**
+ * MListNode class
+ * Represents a node in the linked list.
+ */
+class MListNode
 {
 public:
-    MLISTNODE* next, * previous;
-    MLISTDATA data; // void*
+    MListNode* next;
+    MListNode* previous;
+    MListData data;
 
-    MLISTNODE ( void ); // constructor
-    ~MLISTNODE ( void ) { delete data; }
+    MListNode();
+    ~MListNode() { 
+        // Note: deleting void* is generally unsafe if it's not actually a pointer to a type with a trivial destructor,
+        // but this is how the original code was structured.
+        // In a more modern refactor, we would use templates or std::list.
+        // For now, we maintain behavioral parity.
+        delete (char*)data; 
+    }
 };
 
-
-
-/********************************************************
- clase MLIST
-
-  clase para usar listas enlazadas genericas.
-********************************************************/
-class MLIST
+/**
+ * MList class
+ * Generic linked list class.
+ *
+ * Class for using generic linked lists.
+ */
+class MList
 {
-    MLISTNODE* first, * last;
-    MLISTNODE* current;
-    unsigned long lastpos;
+private:
+    MListNode* first;
+    MListNode* last;
+    MListNode* current;
+    unsigned long lastPos;
     unsigned long dimension;
 
 public:
-    MLIST ();
-    ~MLIST ( void );
+    MList();
+    ~MList();
 
-    MLISTNODE* Insert ( MLISTDATA* d );
-    MLISTNODE* InsertBefore ( MLISTDATA* d, MLISTNODE* pos );
-    MLISTNODE* InsertAfter ( MLISTDATA* d, MLISTNODE* pos );
-    void Delete ( MLISTDATA* d );
+    MListNode* insert(MListData* d);
+    MListNode* insertBefore(MListData* d, MListNode* pos);
+    MListNode* insertAfter(MListData* d, MListNode* pos);
+    void remove(MListData* d); // Renamed from Delete to remove
 
-    void InsertNode ( MLISTNODE* n );
-    void InsertNodeBefore ( MLISTNODE* d, MLISTNODE* pos );
-    void InsertNodeAfter ( MLISTNODE* d, MLISTNODE* pos );
-    void DeleteNode ( MLISTNODE* n );
+    void insertNode(MListNode* n);
+    void insertNodeBefore(MListNode* n, MListNode* pos);
+    void insertNodeAfter(MListNode* n, MListNode* pos);
+    void deleteNode(MListNode* n);
 
-    MLISTNODE* GetNextNode ( MLISTNODE* n );
-    MLISTNODE* GetPreviousNode ( MLISTNODE* n );
-    MLISTNODE* GetFirstNode ( void );
-    MLISTNODE* GetLastNode ( void );
-    MLISTNODE* GetPreviousNode ();
-    MLISTNODE* GetNextNode ();
+    MListNode* getNextNode(MListNode* n) const;
+    MListNode* getPreviousNode(MListNode* n) const;
+    MListNode* getFirstNode() const { return first; }
+    MListNode* getLastNode() const { return last; }
+    MListNode* getPreviousNode();
+    MListNode* getNextNode();
 
+    MListData getNext(MListNode* n) const;
+    MListData getPrevious(MListNode* n) const;
+    MListData getFirst();
+    MListData getLast();
+    MListData getPrevious();
+    MListData getNext();
 
-    MLISTDATA GetNext ( MLISTNODE* n );
-    MLISTDATA GetPrevious ( MLISTNODE* n );
-    MLISTDATA GetFirst ( void );
-    MLISTDATA GetLast ( void );
-    MLISTDATA GetPrevious ();
-    MLISTDATA GetNext ();
+    MListData get(unsigned long index);
+    MListNode* getNode(unsigned long index);
+    MListNode* find(MListData data) const;
+    MListData find(MListNode* fn) const;
 
-    MLISTDATA Get ( unsigned long index );
-    MLISTNODE* GetNode ( unsigned long index );
-    MLISTNODE* Find ( MLISTDATA data );
-    MLISTDATA Find ( MLISTNODE* fn );
-
-    void Release ();
-    unsigned long GetDimension ();
+    void release();
+    unsigned long getDimension() const { return dimension; }
 };
-
-#endif

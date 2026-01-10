@@ -1,38 +1,35 @@
-#ifndef STAGECLEAR_H_
-#define STAGECLEAR_H_
+#pragma once
 
+class Scene;
+class Sprite;
 
-class PSCENE;
-
-
-typedef struct STAGECLEARBITMAPS
+/**
+ * StageClearBitmaps struct
+ * Contains sprites for the stage clear sequence.
+ */
+struct StageClearBitmaps
 {
-    SPRITE title1;
-    SPRITE title2;
-    SPRITE roof;
+    Sprite title1;
+    Sprite title2;
+    Sprite roof;
+};
 
-}PSTGCLRBITMAPS;
-
-
-/*******************************************************
-    clase PSTAGECLEAR
-
-    Clase contenida en PSCENE(el modulo del juego).
-    El objeto creado en PSCENE es un puntero a NULL que
-    se inicializa en el momento que haga falta, y se destruye
-    del mismo modo.
-
-  El motivo de crear esta clase era para no hacer tan denso
-  el codigo y hacer que quedase un poco mas legible dentro de
-  PSCENE, ya que esta secuencia requiere muchos contadores
-  y variables de estados.
-*********************************************************/
-class PSTAGECLEAR
+/**
+ * StageClear class
+ *
+ * Class contained in Scene (the game module).
+ * The object created in Scene is a pointer initialized to null that is 
+ * instantiated when needed and destroyed in the same way.
+ *
+ * The reason for creating this class was to prevent the Scene code 
+ * from becoming too dense and to make it more readable, as this 
+ * sequence requires many counters and state variables.
+ */
+class StageClear
 {
-public:
-    
-    PSTGCLRBITMAPS bmp;
-    PSCENE *scene;
+private:
+    StageClearBitmaps bmp;
+    Scene* scene;
 
     int xt1, yt1;
     int xt2, yt2;
@@ -42,21 +39,24 @@ public:
 
     int cscore[2];
 
-    BOOL endmove;
-    BOOL endcount;
-    BOOL endclose;
-    BOOL endopening;
-    BOOL movingout;
-    BOOL closing;
-    BOOL opening;
-    BOOL finish;
+    bool endMove;
+    bool endCount;
+    bool endClose;
+    bool endOpening;
+    bool movingOut;
+    bool isClosing;
+    bool isOpening;
+    bool finish;
 
-    PSTAGECLEAR(PSCENE *scn);
-    ~PSTAGECLEAR();
-    void DrawAll();
-    int MoveAll();
-    int Init();
-    int Release();
+public:
+    StageClear(Scene* scn);
+    ~StageClear();
+
+    void drawAll();
+    int moveAll();
+    int init();
+    int release();
+
+    // Friend class to allow Scene to access private members if needed
+    friend class Scene;
 };
-
-#endif

@@ -1,70 +1,61 @@
 #include "pang.h"
+#include "shoot.h"
 
-
-SHOOT::SHOOT(PSCENE *scn, PLAYER *pl)
+/**
+ * Shoot constructor
+ *
+ * It calculates the origin of the shot based on the center of the player
+ * who fired it, adjusted for their sprite's current offset.
+ */
+Shoot::Shoot(Scene* scn, Player* pl)
+    : scene(scn), player(pl)
 {	
-    scene = scn;
-    player = pl;
-
-    x = xi = (pl->x+pl->sx/2) + pl->spr->xoff + 5;
-    y = yi = MAX_Y;
-    id = pl->idweapon;
+    xPos = xInit = (pl->getX() + pl->sx / 2.0f) + pl->getSprite()->getXOff() + 5.0f;
+    yPos = yInit = (float)MAX_Y;
+    id = pl->idWeapon;
 
     speed = 5;
-    dead = FALSE;
+    deadStatus = false;
     tail = 0;
 
-    tailtime = cont = 2;
+    tailTime = shotCounter = 2;
 
-    spr[0] = &scene->bmp.shoot[0];
-    spr[1] = &scene->bmp.shoot[1];
-    spr[2] = &scene->bmp.shoot[2];
+    sprites[0] = &scene->bmp.shoot[0];
+    sprites[1] = &scene->bmp.shoot[1];
+    sprites[2] = &scene->bmp.shoot[2];
 }
 
-
-SHOOT::~SHOOT()
+Shoot::~Shoot()
 {
 }
 
-BOOL SHOOT::Colision(FLOOR *fl)
+bool Shoot::collision(Floor* fl)
 {
-    int cx =  x +8;
+    float cx = xPos + 8;
 
-    if(cx > fl->x-1 && cx < fl->x+fl->sx+1 && fl->y+fl->sy>y)	
-        return TRUE;
+    if (cx > fl->getX() - 1 && cx < fl->getX() + fl->getWidth() + 1 && fl->getY() + fl->getHeight() > yPos)	
+        return true;
 
-    return FALSE;
-
+    return false;
 }
 
-void SHOOT::Move()
+void Shoot::move()
 {	
-
-    if(!cont)
+    if (!shotCounter)
     {
         tail = !tail;
-        cont = tailtime;
-    }else cont--;
-
-    if(!dead)
-    {
-        if (y <= MIN_Y)
-        {
-
-            /*if (yi >= y)
-                yi-=speed;
-            else*/
-            player->LooseShoot();
-            dead = 1;
-        }
-        else y-=speed;
+        shotCounter = tailTime;
     }
+    else shotCounter--;
 
-/*	col = Colision();
-    if(col.obj)
-        switch(col.obj)
+    if (!deadStatus)
+    {
+        if (yPos <= MIN_Y)
         {
-            case OBJ_BALL: dead = 1; break;
-        }*/
+            player->looseShoot();
+            deadStatus = true;
+        }
+        else yPos -= speed;
+    }
 }
 

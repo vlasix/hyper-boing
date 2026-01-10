@@ -1,128 +1,93 @@
 #include "pang.h"
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 
-
-/************************************************************
-      Reset()
-  
-    Reinicia la secuencia.
-*************************************************************/
-
-void PSTAGE::Reset()
+void Stage::reset()
 {
-    sequence.Release();
+    sequence.release();
     itemsleft = 0;
     id = 0;
 }
 
-/************************************************************
-      SetBack()
-  
-    cadena de caracteres conteniendo el BackGround.
-*************************************************************/
-void PSTAGE::SetBack(char _back[])
+void Stage::setBack(const char* backFile)
 {
-    strcpy(back, _back);
+    if (backFile)
+        std::strncpy(back, backFile, sizeof(back) - 1);
 }
 
-void PSTAGE::SetMusic(char _music[])
+void Stage::setMusic(const char* musicFile)
 {
-    strcpy(music, _music);
+    if (musicFile)
+        std::strncpy(music, musicFile, sizeof(music) - 1);
 }
 
-/************************************************************
-      Add()
-  
-    Añade un objeto a la secuencia, con un tiempo de salida
-    determinado.
-    Puesto que las coordenadas del objeto no estan indicadas
-    la coordenada X es aleatoria y la coordenada Y es la altura
-    maxima.
-*************************************************************/
-void PSTAGE::Add(int idobject, int start)
+void Stage::add(int idObject, int start)
 {
-    POBJECT *obj = new POBJECT(idobject, start);
+    StageObject* obj = new StageObject(idObject, start);
 
-    obj->x = rand()%600+32;
+    obj->x = std::rand() % 600 + 32;
     obj->y = 22;
 
-    sequence.Insert((MLISTDATA*) obj);
+    sequence.insert((MListData*)obj);
 
-    if(obj->id == OBJ_BALL)
+    if (obj->id == OBJ_BALL)
         itemsleft++;
 }
 
-/************************************************************
-      AddX()
-  
-    Añade un objeto con propiedades *extra*
-    Para mas informacion ver PEXTRA
-*************************************************************/
-
-void PSTAGE::AddX(int idobject, int start, PEXTRA extra)
+void Stage::addX(int idObject, int start, StageExtra extra)
 {
-    POBJECT *obj = new POBJECT(idobject, start, extra);
+    StageObject* obj = new StageObject(idObject, start, extra);
 
-    obj->x = rand()%600+32;
+    obj->x = std::rand() % 600 + 32;
     obj->y = 22;
-    sequence.Insert((MLISTDATA*) obj);
+    sequence.insert((MListData*)obj);
 
-    if(obj->id == OBJ_BALL)
+    if (obj->id == OBJ_BALL)
         itemsleft++;
 }
 
-
-void PSTAGE::Add(int idobject, int x, int y,  int start)
+void Stage::add(int idObject, int x, int y, int start)
 {
-    POBJECT *obj = new POBJECT(idobject, start);
+    StageObject* obj = new StageObject(idObject, start);
     obj->x = x;
     obj->y = y;
 
-    sequence.Insert((MLISTDATA*) obj);
+    sequence.insert((MListData*)obj);
 
-    if(obj->id == OBJ_BALL)
+    if (obj->id == OBJ_BALL)
         itemsleft++;
 }
 
-void PSTAGE::AddX(int idobject, int x, int y,  int start, PEXTRA extra)
+void Stage::addX(int idObject, int x, int y, int start, StageExtra extra)
 {
-    POBJECT *obj = new POBJECT(idobject, start, extra);
+    StageObject* obj = new StageObject(idObject, start, extra);
     obj->x = x;
     obj->y = y;
 
-    sequence.Insert((MLISTDATA*) obj);
+    sequence.insert((MListData*)obj);
 
-    if(obj->id == OBJ_BALL)
+    if (obj->id == OBJ_BALL)
         itemsleft++;
 }
 
-/************************************************************
-      Pop()
-  
-    Comprueba la linea de tiempo(time) y comprueba si el parametro
-    start del primer objeto de la lista es menor o igual que time.
-    En ese caso el valor devuelto por POP es el objeto en cuestion
-    y se elimina de la lista.
-    Si este objeto no cumple la propiedad entonces se devuelve 
-    el objeto con id=OBJ_NULL.
-*************************************************************/
-POBJECT PSTAGE::Pop(int time)
+StageObject Stage::pop(int time)
 {
-    MLISTNODE *pt = sequence.GetFirstNode();	
-    POBJECT *obj;
-    POBJECT res;
+    MListNode* pt = sequence.getFirstNode();	
+    StageObject* obj;
+    StageObject res(OBJ_NULL);
 
-    if(pt)
+    if (pt)
     {
-        obj = (POBJECT*) pt->data;
-        if(time >= obj->start)
+        obj = (StageObject*)pt->data;
+        if (time >= obj->start)
         {
             res = *obj;
-            sequence.DeleteNode(pt);
-            if(res.id == OBJ_BALL) itemsleft--;			
+            sequence.deleteNode(pt);
+            if (res.id == OBJ_BALL) itemsleft--;			
             return res;
         }
     }
     
-    res.id = OBJ_NULL;
     return res;
 }

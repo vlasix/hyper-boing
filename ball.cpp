@@ -1,8 +1,7 @@
 #include "pang.h"
-#include "math.h"
+#include <cmath>
 
 #define ABSF(x) if((x)<0.0) (x)=-(x);
-
 
 /********************************************************
   constructor de BALL
@@ -12,28 +11,33 @@
   desplazandose en la direccion <dirx> <diry>
 ********************************************************/
 
-BALL::BALL(PSCENE *scn, int _x, int _y, int _size, int _top, int _dirx, int _diry, int _id )
+/**
+ * BALL constructor
+ *
+ * When a ball is created, its size and position (x, y) are passed.
+ * The ball starts either moving up or down (dirY) and moving in the
+ * horizontal direction (dirX).
+ */
+Ball::Ball(Scene* scn, int x, int y, int size, int dx, int dy, int topVal, int idVal)
 {
     scene = scn;	
-    this->x = _x;
-    this->y = _y;
-    this->size = _size;
-    id = _id;
+    this->xPos = (float)x;
+    this->yPos = (float)y;
+    this->size = size;
+    id = idVal;
 
-    top = _top;
+    top = topVal;
 
-    dirx = _dirx;
-    diry = _diry;
-    diameter = scn->bmp.redball[size].sx;
+    dirX = dx;
+    dirY = dy;
+    diameter = scn->bmp.redball[size].getWidth();
 
-    t = 0;
-    y0 = y;
+    time = 0;
+    y0 = yPos;
 
-
-
-    if(!top) InitTop();
-    y = MAX_Y - top;
-    Init();
+    if (!top) initTop();
+    yPos = (float)(MAX_Y - top);
+    init();
 }
 
 /********************************************************
@@ -45,191 +49,215 @@ BALL::BALL(PSCENE *scn, int _x, int _y, int _size, int _top, int _dirx, int _dir
   se define el tamaño una unidad mas pequeña.
 ********************************************************/
 
-BALL::BALL(PSCENE *scn, BALL *oldball)
+/**
+ * BALL constructor
+ *
+ * Creates a new ball from an existing one. This occurs when a ball is hit by a shot.
+ * The new ball is created at the same position as the destroyed one, but with its
+ * size reduced by one unit.
+ */
+Ball::Ball(Scene* scn, Ball* oldball)
 {
     scene = scn;
-    this->x = oldball->x;
-    this->y = oldball->y;
+    this->xPos = oldball->xPos;
+    this->yPos = oldball->yPos;
 
-    y0 = oldball->y;
+    y0 = oldball->yPos;
     id = oldball->id;
-    diry = 1;
-    dirx = 1;
-    t = oldball->t;
+    dirY = 1;
+    dirX = 1;
+    time = oldball->time;
 
-    size = oldball->size + 1; // size = indice del vector de pelotas
+    size = oldball->size + 1;
 
-    diameter = scn->bmp.redball[size].sx;
+    diameter = scn->bmp.redball[size].getWidth();
 
-    InitTop();
-    Init();
+    initTop();
+    init();
 
-    t=0; //t=0 --> v=0
+    time = 0;
 }
 
-
-BALL::~BALL()
+Ball::~Ball()
 {
 }
 
-void BALL::Init()
+void Ball::init()
 {		
-    hit = FALSE;
+    hitStatus = false;
 
-    acc = 8/((float)(top-diameter)*(400/top));	
-    tmax = sqrt((float)(2*(top-diameter))/(acc));
+    gravity = 8 / ((float)(top - diameter) * (400.0f / top));	
+    maxTime = std::sqrt((float)(2 * (top - diameter)) / (gravity));
 
-    if(y0)  // si y0 esta definido
-        y0 -= MAX_Y - top; //sacamos la diferencia en pixels
+    if (y0 != 0)
+        y0 -= (float)(MAX_Y - top);
 
-    spr = &scene->bmp.redball[size]; // bitmap correspondiente al tamaño
+    sprite = &scene->bmp.redball[size];
 }
 
-/********************************************************
-  InitTop()
-
-  Se llama a esta funcion cuando el parametro top no esta 
-  definido(top=0). De esta manera se calcula la altura maxima
-  de salto de la pelota en funcion de su diametro..
-********************************************************/
-void BALL::InitTop()
+/**
+ * initTop()
+ *
+ * This function is called when the top parameter is not defined (top=0).
+ * It calculates the maximum jump height for the ball based on its diameter.
+ */
+void Ball::initTop()
 {
+    float d = (float)(MAX_Y - MIN_Y);
 
-    float d = MAX_Y - MIN_Y;
-
-    if(size==0)
-        top = d;
-    else if(size==1)
-        top = d * 0.6;
-    else if(size==2)
-        top = d * 0.4;
-    else if(size==3)
-        top = d * 0.26;
+    if (size == 0)
+        top = (int)d;
+    else if (size == 1)
+        top = (int)(d * 0.6f);
+    else if (size == 2)
+        top = (int)(d * 0.4f);
+    else if (size == 3)
+        top = (int)(d * 0.26f);
     else
-        top = d * 0.1;
-}
-void BALL::Kill()
-{
-    hit = TRUE;
+        top = (int)(d * 0.1f);
 }
 
-void BALL::SetDir(int _dirx, int _diry)
+void Ball::kill()
 {
-    dirx = _dirx;
-    diry = _diry;	
+    hitStatus = true;
 }
 
-void BALL::SetDirX(int _dirx)
+void Ball::setDir(int dx, int dy)
 {
-    dirx = _dirx;	
+    dirX = dx;
+    dirY = dy;	
 }
 
-void BALL::SetDirY(int _diry)
+void Ball::setDirX(int dx)
 {
-    diry = _diry;	
+    dirX = dx;	
 }
 
-
-/********************************************************
-  A continuacion las funciones de colision de la pelota con los
-  diferentes elementos del juego.
-********************************************************/
-BOOL BALL::Colision(SHOOT * sh)
+void Ball::setDirY(int dy)
 {
-    if(!sh->dead)
-        if(sh->x > x && sh->x < x+diameter && y+diameter>sh->y && y<sh->yi)	
-            return TRUE;		
-
-    return FALSE;
+    dirY = dy;	
 }
 
-POINT BALL::Colision(FLOOR * fl)
+void Ball::setPos(int x, int y)
 {
-    POINT col;
-    col.x=col.y=0;
+    xPos = (float)x;
+    yPos = (float)y;
+}
 
-    if( (y+diameter > fl->y && y < fl->y + fl->sy) || (y+diameter >= fl->y && y <= fl->y + fl->sy) && (y<= fl->y+fl->sy ||  y+diameter > fl->y + fl->sy) )
-        if((x+diameter >= fl->x ) && (x <= fl->x) && dirx == 1) col.x = SIDE_LEFT;
-            else if((x <= fl->x + fl->sx) && (x + diameter > fl->x+fl->sx) && dirx == -1) col.x = SIDE_RIGHT;
+/**
+ * Collision detection functions for the ball with various game elements.
+ */
+bool Ball::collision(Shoot* sh)
+{
+    if (!sh->isDead())
+        if (sh->getX() > xPos && sh->getX() < xPos + diameter && yPos + diameter > sh->getY() && yPos < sh->getYInit())	
+            return true;		
 
-    if( (x+diameter > fl->x && x < fl->x + fl->sx)	||(x+diameter >= fl->x && x <= fl->x + fl->sx) && (x <= fl->x + fl->sx || x + diameter > fl->x+fl->sx) )
-        if((y+diameter >= fl->y) && (y < fl->y) && diry == 1) col.y =  SIDE_TOP;
-            else if((y<= fl->y+fl->sy) &&  (y+diameter > fl->y + fl->sy) && diry==-1) col.y =  SIDE_BOTTOM;	
+    return false;
+}
+
+SDL_Point Ball::collision(Floor* fl)
+{
+    SDL_Point col = { 0, 0 };
+
+    if ((yPos + diameter > fl->getY() && yPos < fl->getY() + fl->getHeight()) || 
+        ((yPos + diameter >= fl->getY() && yPos <= fl->getY() + fl->getHeight()) && 
+         (yPos <= fl->getY() + fl->getHeight() || yPos + diameter > fl->getY() + fl->getHeight())))
+    {
+        if ((xPos + diameter >= fl->getX()) && (xPos <= fl->getX()) && dirX == 1) 
+            col.x = SIDE_LEFT;
+        else if ((xPos <= fl->getX() + fl->getWidth()) && (xPos + diameter > fl->getX() + fl->getWidth()) && dirX == -1) 
+            col.x = SIDE_RIGHT;
+    }
+
+    if ((xPos + diameter > fl->getX() && xPos < fl->getX() + fl->getWidth()) || 
+        ((xPos + diameter >= fl->getX() && xPos <= fl->getX() + fl->getWidth()) && 
+         (xPos <= fl->getX() + fl->getWidth() || xPos + diameter > fl->getX() + fl->getWidth())))
+    {
+        if ((yPos + diameter >= fl->getY()) && (yPos < fl->getY()) && dirY == 1) 
+            col.y = SIDE_TOP;
+        else if ((yPos <= fl->getY() + fl->getHeight()) && (yPos + diameter > fl->getY() + fl->getHeight()) && dirY == -1) 
+            col.y = SIDE_BOTTOM;	
+    }
 
     return col;
 }
 
-BOOL BALL::Colision(PLAYER *pl)
+bool Ball::collision(Player* pl)
 {
-
-    if(y+diameter > pl->y+pl->spr->yoff+3)  // lado superior del jugador
-        if( x < pl->x + pl->spr->xoff + pl->sx-5 &&  // lado derecho del jugador
-            x+diameter > pl->x+pl->spr->xoff+5 )  // lado izquierdo del jugador	
-            return TRUE;
-
-    return FALSE;
-}
-
-/********************************************************
-  Move()
-
-  Mueve la pelota basandose en las ecuaciones fisicas de
-  caida libre:
-  S=S0 + V0t + 1/2 a * t^2
-  tomando <S> como <y> y <S0> como <y0>
-********************************************************/
-
-void BALL::Move()
-{
-    float incy;
-    float incx = dirx * 0.80;
-    float height = MAX_Y - y;
-    static float yprev;
-    static float dif=0;		
-
-    if(diry==-1)yprev = y;
-    
-    y = y0 + 0.5*acc*(t*t);
-
-    y = MAX_Y - top + y;
-
-    if(diry==-1 && y < MAX_Y-diameter-2) dif = y - yprev; 
-    else dif = 1000;
-
-    ABSF(dif);
-
-    x += incx;
-
-    t+=diry;
-
-    if(diry==1)	
-        if(y+diameter >= MAX_Y)
-        {			
-            y0=0;
-            diry = -1;
-            t = tmax; // cuando la pelota llega al suelo adquiere la velocidad calculada
-                      // de manera que al subir su altura maxima sea <top>
-        }
-    if(diry==-1)
+    if (yPos + diameter > pl->getY() + pl->getSprite()->getYOff() + 3)
     {
-        if(dif<0.006)  // cuando la pelota ya apenas sube cambiamos de direccion
+        if (xPos < pl->getX() + pl->getSprite()->getXOff() + pl->getWidth() - 5 && 
+            xPos + diameter > pl->getX() + pl->getSprite()->getXOff() + 5)
         {
-            diry = 1;			
+            return true;
         }
-
-        if(t<0) t =0 ;
     }
 
-    if(dirx==1)	
-        if(x+diameter>=MAX_X)
-        {
-            x = MAX_X - diameter;
-            dirx = -1;
+    return false;
+}
+
+/**
+ * move()
+ *
+ * Moves the ball based on the physical equations of free fall:
+ * S = S0 + V0t + 1/2 a * t^2
+ * where S is y and S0 is y0.
+ */
+void Ball::move()
+{
+    float incx = dirX * 0.80f;
+    static float yPrev;
+    static float dif = 0;		
+
+    if (dirY == -1) yPrev = yPos;
+    
+    yPos = y0 + 0.5f * gravity * (time * time);
+    yPos = (float)(MAX_Y - top) + yPos;
+
+    if (dirY == -1 && yPos < MAX_Y - diameter - 2) 
+        dif = yPos - yPrev; 
+    else 
+        dif = 1000.0f;
+
+    float absDif = std::abs(dif);
+
+    xPos += incx;
+    time += (float)dirY;
+
+    if (dirY == 1)	
+    {
+        if (yPos + diameter >= MAX_Y)
+        {			
+            y0 = 0;
+            dirY = -1;
+            time = maxTime;
         }
-    if(dirx==-1)
-        if(x<=MIN_X)
+    }
+    else if (dirY == -1)
+    {
+        if (absDif < 0.006f)
         {
-            x = MIN_X;
-            dirx = 1;
+            dirY = 1;			
         }
+
+        if (time < 0) time = 0;
+    }
+
+    if (dirX == 1)	
+    {
+        if (xPos + diameter >= MAX_X)
+        {
+            xPos = (float)(MAX_X - diameter);
+            dirX = -1;
+        }
+    }
+    else if (dirX == -1)
+    {
+        if (xPos <= MIN_X)
+        {
+            xPos = (float)MIN_X;
+            dirX = 1;
+        }
+    }
 }

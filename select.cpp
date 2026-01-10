@@ -1,133 +1,129 @@
 #include "pang.h"
 #include <SDL.h>
-int PSELECT::InitBitmaps()
+
+int SelectSync::initBitmaps()
 {
-    bmp.back.Init(&graph, "graph\\titleback.png", 0, 0);
-    graph.SetColorKey(bmp.back.bmp, RGB(255,0,0));
+    bmp.back.init(&graph, "graph\\titleback.png", 0, 0);
+    graph.setColorKey(bmp.back.getBmp(), 0xFF0000);
 
-    bmp.mode.Init(&graph, "graph\\selecmodo.png", 0, 0);
-    graph.SetColorKey(bmp.mode.bmp, RGB(255,0,0));
+    bmp.mode.init(&graph, "graph\\selecmodo.png", 0, 0);
+    graph.setColorKey(bmp.mode.getBmp(), 0xFF0000);
     
-    bmp.seltext[PLAYER1].Init(&graph, "graph\\select1ptext.png", 0, 0);
-    graph.SetColorKey(bmp.seltext[PLAYER1].bmp, RGB(0,0,255));
-    bmp.seltext[PLAYER2].Init(&graph, "graph\\select2ptext.png", 0, 0);
-    graph.SetColorKey(bmp.seltext[PLAYER2].bmp, RGB(0,0,255));
+    bmp.selText[PLAYER1].init(&graph, "graph\\select1ptext.png", 0, 0);
+    graph.setColorKey(bmp.selText[PLAYER1].getBmp(), 0x0000FF);
+    bmp.selText[PLAYER2].init(&graph, "graph\\select2ptext.png", 0, 0);
+    graph.setColorKey(bmp.selText[PLAYER2].getBmp(), 0x0000FF);
 
-    bmp.select[PLAYER1].Init(&graph, "graph\\select1p.png", 0, 0);
-    graph.SetColorKey(bmp.select[PLAYER1].bmp, RGB(0,255,0));
-    bmp.select[PLAYER2].Init(&graph, "graph\\select2p.png", 0, 0);
-    graph.SetColorKey(bmp.select[PLAYER2].bmp, RGB(150,150,150));
+    bmp.select[PLAYER1].init(&graph, "graph\\select1p.png", 0, 0);
+    graph.setColorKey(bmp.select[PLAYER1].getBmp(), 0x00FF00);
+    bmp.select[PLAYER2].init(&graph, "graph\\select2p.png", 0, 0);
+    graph.setColorKey(bmp.select[PLAYER2].getBmp(), 0x969696);
 
     return 1;
 }
 
-
-int PSELECT::Init()
+SelectSync::SelectSync()
+    : xb(0), yb(0), option(0), delay(13), delayCounter(0), initDelay(40)
 {
-    gameinf.menu = FALSE;
-    InitBitmaps();
-    xb=yb=0;
-    yb = bmp.back.sy;
+}
+
+int SelectSync::init()
+{
+    gameinf.isMenu() = false;
+    initBitmaps();
+    xb = yb = 0;
+    yb = bmp.back.getHeight();
 
     option = 0;
-    initdelay = 40;
+    initDelay = 40;
 
-    SetGameSpeed(GLOBAL_GAMESPEED);
-    diftime1=0; 
-    diftime2=gamespeed;
-    time1 = SDL_GetTicks()+gamespeed;
+    setGameSpeed(GLOBAL_GAMESPEED);
+    difTime1 = 0; 
+    difTime2 = gameSpeed;
+    time1 = SDL_GetTicks() + gameSpeed;
     time2 = SDL_GetTicks();
 
     delay = 13;
-    count = 0;
+    delayCounter = 0;
 
-    pause = FALSE;	
+    pause = false;	
 
     return 1;
 }
 
-int PSELECT::Release()
+int SelectSync::release()
 {
-    bmp.select[PLAYER1].Release();
-    bmp.select[PLAYER2].Release();
-    bmp.seltext[PLAYER1].Release();
-    bmp.seltext[PLAYER2].Release();
-    bmp.mode.Release();
-    bmp.back.Release();
+    bmp.select[PLAYER1].release();
+    bmp.select[PLAYER2].release();
+    bmp.selText[PLAYER1].release();
+    bmp.selText[PLAYER2].release();
+    bmp.mode.release();
+    bmp.back.release();
 
     CloseMusic();
 
     return 1;
 }
 
-void PSELECT::DrawSelect()
+void SelectSync::drawSelect()
 {
-    //graph.GetDC();
-    //SelectObject(graph.hdc, GetStockObject(WHITE_BRUSH));
-    if (option==0) 	
-        graph.Rectangle(65, 205, 70+bmp.select[PLAYER1].sx+5, 210 + bmp.select[PLAYER1].sy+5);
+    if (option == 0) 	
+        graph.rectangle(65, 205, 70 + bmp.select[PLAYER1].getWidth() + 5, 210 + bmp.select[PLAYER1].getHeight() + 5);
     else
-        graph.Rectangle(330, 205, 335+bmp.select[PLAYER2].sx+5, 210 + bmp.select[PLAYER2].sy+5);
+        graph.rectangle(330, 205, 335 + bmp.select[PLAYER2].getWidth() + 5, 210 + bmp.select[PLAYER2].getHeight() + 5);
 
-
-    //graph.ReleaseDC();
-    graph.Draw(&bmp.mode, 38, 10);
-    graph.Draw(&bmp.select[PLAYER1], 70, 210);
-    graph.Draw(&bmp.seltext[PLAYER1], 70, 210+bmp.select[PLAYER1].sy + 10);
-    graph.Draw(&bmp.select[PLAYER2], 335, 210);
-    graph.Draw(&bmp.seltext[PLAYER2], 350 , 210+bmp.select[PLAYER2].sy + 10);
+    graph.draw(&bmp.mode, 38, 10);
+    graph.draw(&bmp.select[PLAYER1], 70, 210);
+    graph.draw(&bmp.selText[PLAYER1], 70, 210 + bmp.select[PLAYER1].getHeight() + 10);
+    graph.draw(&bmp.select[PLAYER2], 335, 210);
+    graph.draw(&bmp.selText[PLAYER2], 350, 210 + bmp.select[PLAYER2].getHeight() + 10);
 }
 
 
-int PSELECT::DrawAll()
+int SelectSync::drawAll()
 {
-    PAPP::DrawScrollingBackground ();
-    //DrawBack();
-    DrawSelect();
-
-    graph.Flip();
-    
+    App::drawScrollingBackground();
+    drawSelect();
+    graph.flip();
     return 1;
 }
 
-void * PSELECT::MoveAll()
+void* SelectSync::moveAll()
 {
-    if(xb< bmp.back.sx) xb++;
+    if (xb < bmp.back.getWidth()) xb++;
     else xb = 0;
 
-    if(yb>0) yb--;
-    else yb = bmp.back.sy;
+    if (yb > 0) yb--;
+    else yb = bmp.back.getHeight();
 
-    if(initdelay>0) initdelay--;
+    if (initDelay > 0) initDelay--;
 
-    // Actualizar el fondo scrolling compartido
-    PAPP::UpdateScrollingBackground ();
+    App::updateScrollingBackground();
 
-    if(input.Key( SDL_SCANCODE_ESCAPE ))
-        return new PMENU;
+    if (input.key(SDL_SCANCODE_ESCAPE))
+        return new Menu();
 
-    
-    if(input.Key(gameinf.keys[PLAYER1].left) || input.Key(gameinf.keys[PLAYER1].right))
+    if (input.key(gameinf.getKeys()[PLAYER1].left) || input.key(gameinf.getKeys()[PLAYER1].right))
     {
-        if(!count)
+        if (!delayCounter)
         {
             option = !option;
-            count = delay;
+            delayCounter = delay;
         }
     }
-    else
-        if(!initdelay)
-			// Enter or shoot key to select
-            if( input.Key ( SDL_SCANCODE_RETURN ) || input.Key(gameinf.keys[PLAYER1].shoot))
-            {
-                gameinf.player[PLAYER1] = new PLAYER(PLAYER1);
-                if(option == PLAYER2)
-                        gameinf.player[PLAYER2] = new PLAYER(PLAYER2);
-                gameinf.InitStages();
-                return new PSCENE(&gameinf.stage[0]);
-            }
+    else if (!initDelay)
+    {
+        if (input.key(SDL_SCANCODE_RETURN) || input.key(gameinf.getKeys()[PLAYER1].shoot))
+        {
+            gameinf.getPlayers()[PLAYER1] = new Player(PLAYER1);
+            if (option == PLAYER2)
+                gameinf.getPlayers()[PLAYER2] = new Player(PLAYER2);
+            gameinf.initStages();
+            return new Scene(&gameinf.getStages()[0]);
+        }
+    }
 
-    if(count>0) count--;	
+    if (delayCounter > 0) delayCounter--;	
 
-    return NULL;
+    return nullptr;
 }

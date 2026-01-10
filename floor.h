@@ -1,33 +1,37 @@
-#ifndef FLOOR_H_
-#define FLOOR_H_
+#pragma once
 
+/**
+ * Floor class
+ *
+ * It is the "floor" object, the platforms or blocks
+ * that are floating in the air, which only
+ * disturb the trajectory of the Balls.
+ */
+class Scene;
+class Sprite;
 
-/********************************************************
-  clase FLOOR
-
-  Es el objeto "suelo", las plataformas o bloques
-  que hay en el aire flotando, que lo unico que hacen es
-  molestar la trayectoria de las Bolas.
-********************************************************/
-
-
-
-class FLOOR
+class Floor
 {
-public:
-    PSCENE *scene;
-    SPRITE *spr;
+private:
+    Scene* scene;
+    Sprite* sprite;
 
     int x, y;
     int sx, sy;
     int id;
-    BOOL dead;
+    bool dead;
 
-    FLOOR(PSCENE *scn, int _x, int _y, int _id);
-    ~FLOOR();
+public:
+    Floor(Scene* scene, int x, int y, int id);
+    ~Floor();
 
-    void Update();
-    void Kill(){dead = TRUE ;}
+    void update();
+    void kill() { dead = true; }
+
+    bool isDead() const { return dead; }
+    int getX() const { return x; }
+    int getY() const { return y; }
+    int getWidth() const { return sx; }
+    int getHeight() const { return sy; }
+    int getId() const { return id; }
 };
-
-#endif

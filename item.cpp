@@ -1,9 +1,10 @@
 #include "item.h"
 
-ITEM::ITEM(int _x, int _y, int _id)
+Item::Item(int x, int y, int id)
+    : x(x), y(y), id(id)
 {
-    x = _x;
-    y = _y;
+}
 
-    id = _id;
+Item::~Item()
+{
 }

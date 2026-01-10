@@ -1,53 +1,65 @@
-#ifndef _BALL_H_
-#define _BALL_H_
+#pragma once
 
-class PSCENE;
-class SHOOT;
-class PLAYER;
-class FLOOR;
+#include <SDL.h>
 
-/********************************************************
-  clase BALL
+class Scene;
+class Shoot;
+class Player;
+class Floor;
+class Sprite;
 
-  es la pelota del juego, a la que hay que disparar
-********************************************************/
-
-
-class BALL
+/**
+ * Ball class
+ *
+ * It is the game ball, which must be shot.
+ */
+class Ball
 {
-public:
-
-    SPRITE * spr;
-    float x, y; // posicion esquina superior izq.
-    int top; //altura maxima desde el suelo
-    int diameter;  //diametro
+private:
+    Sprite* sprite;
+    float xPos, yPos; // top-left corner position
+    int top; // maximum height from the floor
+    int diameter;
     int size;
     int id;
 
-    int dirx, diry; //direccion
-    float t, tmax;	// tiempo	
-    float y0; //espacio inicial
-    float acc;
-    PSCENE *scene;
-    BOOL hit;
+    int dirX, dirY; // direction
+    float time, maxTime;
+    float y0; // initial space
+    float gravity; // acceleration (acc)
+    Scene* scene;
+    bool hitStatus;
 
-    BALL(PSCENE *scn, BALL *oldball);
-    BALL(PSCENE *scn, int _x, int _y, int _size,  int _dirx=1, int _diry=1, int _top=0, int _id=0);
-    ~BALL();
-    void Init();
-    void InitTop();
+public:
+    Ball(Scene* scene, Ball* oldBall);
+    Ball(Scene* scene, int x, int y, int size, int dirX = 1, int dirY = 1, int top = 0, int id = 0);
+    ~Ball();
+
+    void init();
+    void initTop();
     
-    void Move();
-    void Kill();
-    BOOL Colision(SHOOT * sh);
-    POINT Colision(FLOOR * fl);
-    BOOL Colision(PLAYER *pl);
-    void SetDir(int _dirx, int _diry);
-    void SetDirX(int _dirx);
-    void SetDirY(int _diry);
-    void SetPos(int x, int y);
+    void move();
+    void kill();
     
+    bool collision(Shoot* shoot);
+    SDL_Point collision(Floor* floor);
+    bool collision(Player* player);
+    
+    void setDir(int dx, int dy);
+    void setDirX(int dx);
+    void setDirY(int dy);
+    void setPos(int x, int y);
+
+    // Getters
+    float getX() const { return xPos; }
+    float getY() const { return yPos; }
+    int getDirX() const { return dirX; }
+    int getDirY() const { return dirY; }
+    int getSize() const { return size; }
+    int getDiameter() const { return diameter; }
+    bool isHit() const { return hitStatus; }
+    Sprite* getSprite() const { return sprite; }
+
+    // Friend classes for easier refactoring transition
+    friend class Scene;
 };
-
-
-#endif

@@ -1,23 +1,24 @@
-#ifndef SHOOT_H_
-#define SHOOT_H_
+#pragma once
 
-/*#include "ball.h"
-#include "player.h"*/
+class Scene;
+class Player;
+class Sprite;
+class Floor;
 
-
-/*******************************************************
-    clase SHOOT
-
-    El objeto disparo.
-*********************************************************/
-class SHOOT
+/**
+ * Shoot class
+ *
+ * Represents the projectile object fired by players.
+ * Manages its movement, animation, and collision detection logic.
+ */
+class Shoot
 {
-public:
-    PSCENE *scene;
-    PLAYER *player; //jugador que lo ha disparado
-    SPRITE *spr[3];
-    float x, y;
-    float xi, yi; // x e Y iniciales
+private:
+    Scene* scene;
+    Player* player; // player who shot it
+    Sprite* sprites[3];
+    float xPos, yPos;
+    float xInit, yInit; // initial x and y
     
     int sx, sy;	
 
@@ -25,20 +26,30 @@ public:
     int speed;
     int frame;
     
-    int tail;  // esto define la animacion de la cola
-    int tailtime;
-    int cont; // contador para cambiar la cola
+    int tail;  // defines the tail animation
+    int tailTime;
+    int shotCounter;
 
+    bool deadStatus;
 
-    bool dead;
-    
-    SHOOT(PSCENE *scn, PLAYER *pl);
-    ~SHOOT();
+public:
+    Shoot(Scene* scene, Player* player);
+    ~Shoot();
 
-    void Move();
-    BOOL Colision(FLOOR *fl);
-    void Kill() { dead = 1;}
-    bool IsDead() { return dead == 1; }
+    void move();
+    bool collision(Floor* floor);
+    void kill() { deadStatus = true; }
+    bool isDead() const { return deadStatus; }
+
+    // Getters for Scene and other classes
+    float getX() const { return xPos; }
+    float getY() const { return yPos; }
+    float getYInit() const { return yInit; }
+    Player* getPlayer() const { return player; }
+    Sprite* getSprite(int index) const { return sprites[index]; }
+    int getTail() const { return tail; }
+
+    // Friend classes for easier refactoring transition
+    friend class Scene;
+    friend class Ball;
 };
-
-#endif
