@@ -7,6 +7,7 @@ typedef struct PMNUBITMAPS
     SPRITE optionPlay;
     SPRITE optionConfig;
     SPRITE optionExit;
+    SPRITE menuFont; // Textura de la fuente BMFont
 }PMENUBITMAPS;
 
 /*******************************************************
@@ -25,6 +26,11 @@ public:
     int selectedOption; // 0=JUGAR, 1=CONFIGURACION, 2=SALIR
     BOOL visible; // parpadeo de la opción seleccionada
     int cont; //contador para el parpadeo 
+    
+    // BMFont para el menú
+    BMFontLoader fontLoader;
+    BMFontRenderer fontRenderer;
+    
     int Init();
     int InitBitmaps();
     void DrawTitle();
