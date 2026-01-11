@@ -13,8 +13,8 @@ ConfigScreen::ConfigScreen()
 
 int ConfigScreen::init()
 {
-    App::init();
-    App::initSharedBackground();
+    GameState::init();
+    GameState::initSharedBackground();
     
     for (int player = 0; player < 2; player++)
     {
@@ -38,7 +38,7 @@ int ConfigScreen::init()
 
 void* ConfigScreen::moveAll()
 {
-    App::updateScrollingBackground();
+    GameState::updateScrollingBackground();
     
     if (state == ConfigState::WaitingKey)
     {
@@ -145,7 +145,7 @@ void* ConfigScreen::moveAll()
 
 int ConfigScreen::drawAll()
 {
-    App::drawScrollingBackground();
+    GameState::drawScrollingBackground();
     drawUI();
     drawDebugOverlay();
     graph.flip();
@@ -221,7 +221,7 @@ void ConfigScreen::drawUI()
 void ConfigScreen::drawDebugOverlay()
 {
     if (!debugMode) return;
-    App::drawDebugOverlay();
+    GameState::drawDebugOverlay();
     char cadena[256];
     int y = 80;
     std::sprintf(cadena, "Selected = %d  State = %d", 

@@ -20,9 +20,9 @@ struct SelectBitmaps
  *
  * This module handles the player selection screen (1 Player or 2 Players).
  * It manages the visual selection feedback and transitioning to the game.
- * Inherits from App.
+ * Inherits from GameState.
  */
-class SelectSync : public App
+class SelectSync : public GameState
 {
 private:
     SelectBitmaps bmp;

@@ -16,7 +16,7 @@ Graph graph;      // Graphics mode object
 MInput input;     // Input handler object
 GameInfo gameinf; // Global game information
 ConfigData config; // Persistent configuration object
-App *screen = nullptr, *nextscreen = nullptr;
+GameState *screen = nullptr, *nextscreen = nullptr;
 
 // Main simulation/game loop replacement for WinMain for cleaner look if requested, 
 // but keeping WinMain as entry point for Windows.
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
                  }
                  if (e.key.keysym.sym == SDLK_TAB)
                  {
-                     App::debugMode = !App::debugMode;
+                     GameState::debugMode = !GameState::debugMode;
                  }
             }
         }
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
             screen->doPause();
         else
         {
-            nextscreen = (App*)screen->doTick();
+            nextscreen = (GameState*)screen->doTick();
             if (nextscreen != nullptr)
             {
                 screen->release();
@@ -322,9 +322,9 @@ void GameInfo::initStages()
         }	
 }
 
-void GameInfo::setCurrent(App* app)
+void GameInfo::setCurrent(GameState* state)
 {
-    activeScene = app;
+    activeScene = state;
 }
 
 void GameInfo::release()

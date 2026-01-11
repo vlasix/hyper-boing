@@ -5,19 +5,19 @@
 #include "pang.h"
 
 // Initialize static variables
-Sprite* App::sharedBackground = nullptr;
-float App::scrollX = 0;
-float App::scrollY = 0;
-bool App::backgroundInitialized = false;
-bool App::debugMode = false;
+Sprite* GameState::sharedBackground = nullptr;
+float GameState::scrollX = 0;
+float GameState::scrollY = 0;
+bool GameState::backgroundInitialized = false;
+bool GameState::debugMode = false;
 
-App::App()
+GameState::GameState()
     : gameSpeed(0), fps(0), fpsv(0), active(true), pause(false), 
       difTime1(0), difTime2(0), time1(0), time2(0)
 {		
 }
 
-int App::init()
+int GameState::init()
 {
     active = true;
     pause = false;
@@ -32,7 +32,7 @@ int App::init()
     return 1;
 }
 
-void App::drawDebugOverlay()
+void GameState::drawDebugOverlay()
 {
     if (!debugMode) return;
     
@@ -58,7 +58,7 @@ void App::drawDebugOverlay()
     graph.text(cadena, 20, y);
 }
 
-void App::initSharedBackground()
+void GameState::initSharedBackground()
 {
     if (!backgroundInitialized)
     {
@@ -71,7 +71,7 @@ void App::initSharedBackground()
     }
 }
 
-void App::updateScrollingBackground()
+void GameState::updateScrollingBackground()
 {
     if (!backgroundInitialized || !sharedBackground) return;
     
@@ -82,7 +82,7 @@ void App::updateScrollingBackground()
     else scrollY = (float)sharedBackground->getHeight();
 }
 
-void App::drawScrollingBackground()
+void GameState::drawScrollingBackground()
 {
     if (!backgroundInitialized || !sharedBackground) return;
     
@@ -121,7 +121,7 @@ void App::drawScrollingBackground()
         }
 }
 
-void App::releaseSharedBackground()
+void GameState::releaseSharedBackground()
 {
     if (backgroundInitialized && sharedBackground)
     {
@@ -142,7 +142,7 @@ void App::releaseSharedBackground()
  * on slower systems, we render only as many as possible, but the "virtual" speed
  * of the game remains 60 fps.
  */
-void* App::doTick()
+void* GameState::doTick()
 {
     static short framestatus = 0;	
     static short cont = 0;
@@ -152,7 +152,7 @@ void* App::doTick()
     {
         goback = false;
         gameinf.isMenu() = true;
-        return (App*) new Menu;
+        return (GameState*) new Menu;
     }
 
     if (framestatus == 0)
@@ -173,7 +173,7 @@ void* App::doTick()
             framestatus = 2;
             return nullptr;
         }		
-        void* newscreen = (App*) moveAll();
+        void* newscreen = (GameState*) moveAll();
         difTime1 -= gameSpeed;
         return newscreen;
     }
@@ -200,7 +200,7 @@ void* App::doTick()
  * If we pause, we need to update these data points so that the 
  * doTick function behaves correctly once the game is resumed.
  */
-void App::doPause()
+void GameState::doPause()
 {	
     difTime1 = 0; 
     difTime2 = gameSpeed;
@@ -212,17 +212,17 @@ void App::doPause()
  * Adjust the rendering speed in frames per second and convert it to 
  * the equivalent milliseconds per frame, which is the actual data needed.
  */
-void App::setGameSpeed(int speed)
+void GameState::setGameSpeed(int speed)
 {
     gameSpeed = 1000 / speed;
 }
 
-void App::setActive(bool b)
+void GameState::setActive(bool b)
 {
     active = b;
 }
 
-void App::setPause(bool b)
+void GameState::setPause(bool b)
 {
     pause = b;
 }

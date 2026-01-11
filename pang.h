@@ -104,7 +104,7 @@ private:
     int numPlayers;
     int numStages;
     Player* player[2];
-    App* activeScene;
+    GameState* activeScene;
     Keys playerKeys[2];
 
     GameBitmaps bitmaps;
@@ -118,7 +118,7 @@ public:
 
     void init();
     void initStages();
-    void setCurrent(App* app);
+    void setCurrent(GameState* state);
     void release();
 
     // Accessors for refactoring transition

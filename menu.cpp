@@ -12,7 +12,7 @@ int Menu::initBitmaps()
     graph.setColorKey(bmp.title.getBmp(), 0x00FF00);
     
     // Initialize shared background
-    App::initSharedBackground();
+    GameState::initSharedBackground();
 
     // Load BMFont for menu
     if (fontLoader.load("graph\\font\\thickfont_grad_64.fnt"))
@@ -33,7 +33,7 @@ Menu::Menu()
 
 int Menu::init()
 {
-    App::init();
+    GameState::init();
     
     gameinf.isMenu() = true;
     initBitmaps();
@@ -105,7 +105,7 @@ void Menu::drawMenu()
 
 int Menu::drawAll()
 {
-    App::drawScrollingBackground();
+    GameState::drawScrollingBackground();
     drawTitle();
     drawMenu();
     drawDebugOverlay();
@@ -116,14 +116,14 @@ int Menu::drawAll()
 void Menu::drawDebugOverlay()
 {
     if (!debugMode) return;
-    App::drawDebugOverlay();
+    GameState::drawDebugOverlay();
     char cadena[256];
     int y = 80;
     int lineHeight = 20;
     std::sprintf(cadena, "Title Y = %d  Selected = %d", yPos, selectedOption);
     graph.text(cadena, 20, y);
     y += lineHeight;
-    std::sprintf(cadena, "Scroll X=%d Y=%d", App::scrollX, App::scrollY);
+    std::sprintf(cadena, "Scroll X=%d Y=%d", GameState::scrollX, GameState::scrollY);
     graph.text(cadena, 20, y);
 }
 
@@ -136,7 +136,7 @@ void* Menu::moveAll()
     if (blinkCounter > 0) blinkCounter--;
     else blinkCounter = 30;
 
-    App::updateScrollingBackground();
+    GameState::updateScrollingBackground();
 
     if (yPos < 50) yPos += 10;
     else if (!blinkCounter) visible = !visible;

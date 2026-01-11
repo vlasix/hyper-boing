@@ -20,10 +20,10 @@ enum class ConfigState
  * ConfigScreen class
  *
  * Key configuration screen using SDL2.
- * This is a child class of App and serves as a game module.
+ * This is a child class of GameState and serves as a game module.
  * It replaces the Windows dialog with an SDL2 interface.
  */
-class ConfigScreen : public App
+class ConfigScreen : public GameState
 {
 private:
     ConfigState state;

@@ -6,7 +6,7 @@
 class Sprite;
 
 /**
- * App class
+ * GameState class
  *
  * This class is used to create different instances of the current game screen.
  * It serves as the base class for several game modules.
@@ -17,7 +17,7 @@ class Sprite;
  * - drawAll(): Renders all elements currently on the screen.
  * - moveAll(): Handles movements, input reading, collision detection, etc.
  */
-class App
+class GameState
 {
 protected:
     int gameSpeed; // frames per second in milliseconds
@@ -39,8 +39,8 @@ public:
     // Global debug mode
     static bool debugMode;
 
-    App();
-    virtual ~App() {}
+    GameState();
+    virtual ~GameState() {}
 
     void* doTick();
     void doPause();

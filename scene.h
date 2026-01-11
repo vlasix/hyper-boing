@@ -50,9 +50,9 @@ struct SceneBitmaps
  *
  * This is the core game module. It manages the active gameplay:
  * balls, players, shoots, floors, and collision logic.
- * Inherits from App.
+ * Inherits from GameState.
  */
-class Scene : public App
+class Scene : public GameState
 {
 private:
     bool levelClear;

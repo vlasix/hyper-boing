@@ -16,12 +16,12 @@ struct MenuBitmaps
 /**
  * Menu class
  * Main menu module of the game.
- * Inherits from App.
+ * Inherits from GameState.
  *
- * Child class of App; it is a game module.
+ * Child class of GameState; it is a game module.
  * Represents the main menu of the game.
  */
-class Menu : public App
+class Menu : public GameState
 {
 private:
     MenuBitmaps bmp;

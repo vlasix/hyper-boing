@@ -83,7 +83,7 @@ void SelectSync::drawSelect()
 
 int SelectSync::drawAll()
 {
-    App::drawScrollingBackground();
+    GameState::drawScrollingBackground();
     drawSelect();
     graph.flip();
     return 1;
@@ -99,7 +99,7 @@ void* SelectSync::moveAll()
 
     if (initDelay > 0) initDelay--;
 
-    App::updateScrollingBackground();
+    GameState::updateScrollingBackground();
 
     if (input.key(SDL_SCANCODE_ESCAPE))
         return new Menu();

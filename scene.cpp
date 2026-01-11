@@ -19,7 +19,7 @@ Scene::Scene(Stage* stg, StageClear* pstgclr)
 
 int Scene::init()
 {
-    App::init();
+    GameState::init();
 
     char cadena[MAX_PATH];
 
@@ -682,7 +682,7 @@ void Scene::drawMark()
 void Scene::drawDebugOverlay()
 {
     if (!debugMode) return;
-    App::drawDebugOverlay();
+    GameState::drawDebugOverlay();
 
     char cadena[256];
     int y = 80;
