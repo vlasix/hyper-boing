@@ -99,8 +99,7 @@ int main(int argc, char* argv[])
 
     appData.config.save();
     appData.graph.release();
-    CloseMusic();
-    
+    AudioManager::destroy();
     AppData::destroy();
 
     return 0;
@@ -113,41 +112,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
     return main(__argc, __argv);
 }
-#endif
-
-// Windows MCI Sound wrappers - Note: these remain platform specific
-#ifdef _WIN32
-#include <windows.h>
-char OpenMusic(char* filename)
-{
-    char buffer[256];
-    std::sprintf(buffer, "open %s type sequencer alias MUSIC", filename);
-    return (mciSendStringA(buffer, nullptr, 0, nullptr) == 0);
-}
-
-char PlayMusic()
-{
-    return (mciSendStringA("play MUSIC from 0 notify", nullptr, 0, nullptr) == 0);
-}
-
-char StopMusic()
-{
-    return (mciSendStringA("stop MUSIC", nullptr, 0, nullptr) == 0);
-}
-
-char ContinueMusic()
-{
-    return (mciSendStringA("play MUSIC notify", nullptr, 0, nullptr) == 0);
-}
- 
-char CloseMusic()
-{
-    return (mciSendStringA("close all", nullptr, 0, nullptr) == 0);
-}
-#else
-char OpenMusic(char*) { return 0; }
-char PlayMusic() { return 0; }
-char StopMusic() { return 0; }
-char ContinueMusic() { return 0; }
-char CloseMusic() { return 0; }
 #endif

@@ -2,10 +2,6 @@
 #include "appdata.h"
 #include <SDL.h>
 
-// Convenience macros for AppData access
-#define appGraph AppData::instance().graph
-#define appInput AppData::instance().input
-
 int SelectSync::initBitmaps()
 {
     bmp.back.init(&appGraph, "graph\\titleback.png", 0, 0);

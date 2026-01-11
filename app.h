@@ -2,8 +2,15 @@
 
 #include <SDL.h>
 #include "bmfont.h"
+#include "appdata.h"
+#include "audiomanager.h"
 
 class Sprite;
+
+// Convenience macros for global singletons - available globally
+#define appGraph AppData::instance().graph
+#define appInput AppData::instance().input
+#define appAudio AudioManager::instance()
 
 /**
  * GameState class

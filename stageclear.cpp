@@ -3,10 +3,6 @@
 #include "pang.h"
 #include "appdata.h"
 
-// Convenience macros for AppData access
-#define appGraph AppData::instance().graph
-#define appInput AppData::instance().input
-
 StageClear::StageClear(Scene* scn)
 {
     scene = scn;

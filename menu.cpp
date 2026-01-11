@@ -5,10 +5,6 @@
 #include <cstdio>
 #include <cstring>
 
-// Convenience macros for AppData access
-#define appGraph AppData::instance().graph
-#define appInput AppData::instance().input
-
 extern int quit;
 
 int Menu::initBitmaps()

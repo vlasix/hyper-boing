@@ -6,10 +6,6 @@
 #include <cstdio>
 #include <cstring>
 
-// Convenience macros for AppData access
-#define appGraph AppData::instance().graph
-#define appInput AppData::instance().input
-
 ConfigScreen::ConfigScreen()
     : state(ConfigState::Normal), selectedOption(0), waitingForKey(-1), tempRenderMode(0)
 {

@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "app.h"
-#include "sprite.h"
 #include "graph.h"
 #include "bmfont.h"
 #include "scene.h"
@@ -22,6 +21,7 @@
 #include "floor.h"
 #include "minput.h"
 #include "appdata.h"
+#include "audiomanager.h"
 
 // Object identifiers
 constexpr int OBJ_NULL = 0;
@@ -65,20 +65,16 @@ constexpr int SIDE_RIGHT = 4;
 
 constexpr int GLOBAL_GAMESPEED = 60;
 
-// Legacy compatibility: GameInfo is now an alias to AppData
-// This allows gradual migration of code
-using GameInfo = AppData;
-
-// Global external objects (being phased out - use AppData::instance() instead)
+// Global external variables (being phased out)
 extern int globalmode;
 extern bool goback;
 
-// Temporary macro for gradual migration
+// Legacy compatibility macros - for gradual migration
 #define gameinf AppData::instance()
 
-// Sound functions prototypes (Windows-specific MCI wrappers)
-char OpenMusic(char*);
-char PlayMusic();
-char StopMusic();
-char ContinueMusic();
-char CloseMusic();
+// Audio compatibility macros - map old functions to AudioManager
+#define OpenMusic(file) AudioManager::instance().openMusic(file)
+#define PlayMusic() AudioManager::instance().play()
+#define StopMusic() AudioManager::instance().stop()
+#define ContinueMusic() AudioManager::instance().resume()
+#define CloseMusic() AudioManager::instance().closeAll()

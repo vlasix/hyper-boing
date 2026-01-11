@@ -10,10 +10,6 @@
 #define MAX_PATH 260
 #endif
 
-// Convenience macros for AppData access  
-#define appGraph AppData::instance().graph
-#define appInput AppData::instance().input
-
 Scene::Scene(Stage* stg, StageClear* pstgclr)
 {
     gameinf.isMenu() = false;
