@@ -5,8 +5,6 @@
 #include <cstdio>
 #include <cstring>
 
-extern int quit;
-
 int Menu::initBitmaps()
 {
     bmp.title.init(&appGraph, "graph\\title.png", 0, 0);

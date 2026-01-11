@@ -65,12 +65,11 @@ constexpr int SIDE_RIGHT = 4;
 
 constexpr int GLOBAL_GAMESPEED = 60;
 
-// Global external variables (being phased out)
-extern int globalmode;
-extern bool goback;
-
 // Legacy compatibility macros - for gradual migration
 #define gameinf AppData::instance()
+#define quit AppData::instance().quit
+#define goback AppData::instance().goBack
+#define globalmode AppData::instance().renderMode
 
 // Audio compatibility macros - map old functions to AudioManager
 #define OpenMusic(file) AudioManager::instance().openMusic(file)

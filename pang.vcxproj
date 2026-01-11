@@ -252,6 +252,7 @@
     <ClCompile Include="configdata.cpp" />
     <ClCompile Include="configscreen.cpp" />
     <ClCompile Include="floor.cpp" />
+    <ClCompile Include="gamerunner.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="item.cpp" />
     <ClCompile Include="menu.cpp" />
@@ -274,6 +275,7 @@
     <ClInclude Include="bmfont.h" />
     <ClInclude Include="configscreen.h" />
     <ClInclude Include="floor.h" />
+    <ClInclude Include="gamerunner.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="item.h" />
     <ClInclude Include="menu.h" />
@@ -297,6 +299,9 @@
   <ItemGroup>
     <Text Include="graph\CREAR_FUENTE_BMFONT.txt" />
     <Text Include="graph\CREAR_IMAGENES_MENU.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ARCHITECTURE.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

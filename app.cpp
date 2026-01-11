@@ -165,10 +165,12 @@ void* GameState::doTick()
     static short cont = 0;
     static long tick, lasttick;
 
-    if (goback)
+    AppData& appData = AppData::instance();
+    
+    if (appData.goBack)
     {
-        goback = false;
-        AppData::instance().isMenu() = true;
+        appData.goBack = false;
+        appData.isMenu() = true;
         return (GameState*) new Menu;
     }
 

@@ -96,8 +96,13 @@ public:
     float scrollY;
     bool backgroundInitialized;
 
-    // Global flags (moved from GameState statics)
+    // Global flags and state (moved from main)
     bool debugMode;
+    bool quit;           // Application quit flag
+    bool goBack;         // Return to menu flag
+    int renderMode;      // Render mode (windowed/fullscreen)
+    GameState* currentScreen;  // Current active screen
+    GameState* nextScreen;     // Next screen to transition to
 
     // Initialization methods
     void init();

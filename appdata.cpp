@@ -1,11 +1,21 @@
 #include "appdata.h"
 #include "app.h"
+#include "sprite.h"
 #include "player.h"
 #include "stage.h"
 #include "pang.h"
 #include <cstdlib>
 
-#define appGraph AppData::instance().graph
+// Temporarily undefine macros that conflict with member names during construction
+#ifdef quit
+#undef quit
+#endif
+#ifdef goBack  
+#undef goBack
+#endif
+#ifdef globalmode
+#undef globalmode
+#endif
 
 // Initialize static singleton instance
 AppData* AppData::s_instance = nullptr;
@@ -13,13 +23,21 @@ AppData* AppData::s_instance = nullptr;
 AppData::AppData()
     : numPlayers(1), numStages(6), currentStage(1), inMenu(true),
       activeScene(nullptr), sharedBackground(nullptr), scrollX(0.0f), 
-      scrollY(0.0f), backgroundInitialized(false), debugMode(false)
+      scrollY(0.0f), backgroundInitialized(false), debugMode(false),
+      quit(false), goBack(false), renderMode(RENDERMODE_NORMAL),
+      currentScreen(nullptr), nextScreen(nullptr)
 {
     player[PLAYER1] = player[PLAYER2] = nullptr;
     
     // Allocate stages array
     stages = new Stage[6];
 }
+
+// Redefine macros after construction
+#define quit AppData::instance().quit
+#define goback AppData::instance().goBack
+#define globalmode AppData::instance().renderMode
+#define appGraph graph
 
 AppData& AppData::instance()
 {
