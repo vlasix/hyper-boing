@@ -2,6 +2,7 @@
 #include <cstdio>
 #include "app.h"
 #include "appdata.h"
+#include "appconsole.h"
 #include "sprite.h"
 #include "graph.h"
 #include "pang.h"
@@ -53,6 +54,24 @@ void GameState::drawDebugOverlay()
             pause ? "YES" : "NO",
             active ? "YES" : "NO");
     appData.graph.text(cadena, 20, y);
+}
+
+/**
+ * Final render step - adds debug overlay, console overlay, and flips
+ * Call this at the end of drawAll() in derived classes
+ */
+void GameState::finalizeRender()
+{
+    AppData& appData = AppData::instance();
+    
+    // Draw debug overlay if enabled
+    drawDebugOverlay();
+    
+    // Render AppConsole overlay (always last, on top of everything)
+    AppConsole::instance().render();
+    
+    // Present the rendered frame
+    appData.graph.flip();
 }
 
 void GameState::initSharedBackground()

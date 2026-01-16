@@ -245,6 +245,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="appconsole.cpp" />
     <ClCompile Include="appdata.cpp" />
     <ClCompile Include="audiomanager.cpp" />
     <ClCompile Include="ball.cpp" />
@@ -255,6 +256,7 @@
     <ClCompile Include="gamerunner.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="item.cpp" />
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="minput.cpp" />
     <ClCompile Include="mlist.cpp" />
@@ -269,6 +271,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
+    <ClInclude Include="appconsole.h" />
     <ClInclude Include="appdata.h" />
     <ClInclude Include="audiomanager.h" />
     <ClInclude Include="ball.h" />
@@ -278,6 +281,7 @@
     <ClInclude Include="gamerunner.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="item.h" />
+    <ClInclude Include="logger.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="minput.h" />
     <ClInclude Include="mlist.h" />

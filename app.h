@@ -55,6 +55,9 @@ public:
     virtual int drawAll() = 0;
     virtual int release() = 0;
     
+    // Final render step - called after drawAll() to add overlays and flip
+    void finalizeRender();
+    
     // Shared background functions (now use AppData)
     static void initSharedBackground();
     static void updateScrollingBackground();

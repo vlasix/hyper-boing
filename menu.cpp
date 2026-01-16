@@ -1,5 +1,6 @@
 #include "pang.h"
 #include "appdata.h"
+#include "appconsole.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <cstdio>
@@ -105,8 +106,10 @@ int Menu::drawAll()
     GameState::drawScrollingBackground();
     drawTitle();
     drawMenu();
-    drawDebugOverlay();
-    appGraph.flip();
+    
+    // Finalize render (debug overlay, console, flip)
+    finalizeRender();
+    
     return 1;
 }
 

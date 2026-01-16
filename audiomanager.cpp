@@ -1,5 +1,5 @@
 #include "audiomanager.h"
-#include <cstdio>
+#include "logger.h"
 #include <sys/stat.h>
 
 // Initialize static singleton instance
@@ -47,12 +47,12 @@ bool AudioManager::init()
     if (isInitialized)
         return true;
     
-    printf("Initializing SDL_mixer...\n");
+    LOG_INFO("Initializing SDL_mixer...");
     
     // Initialize SDL_mixer with default frequency and format
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
-        printf("SDL_mixer initialization failed: %s\n", Mix_GetError());
+        LOG_ERROR("SDL_mixer initialization failed: %s", Mix_GetError());
         return false;
     }
     
@@ -60,17 +60,16 @@ bool AudioManager::init()
     Mix_AllocateChannels(16);
     
     isInitialized = true;
-    printf("SDL_mixer initialized successfully\n");
+    LOG_SUCCESS("SDL_mixer initialized");
     
     // Print supported audio decoders
-    printf("\n=== SDL_mixer Audio Decoders ===\n");
+    LOG_DEBUG("=== SDL_mixer Audio Decoders ===");
     int numDecoders = Mix_GetNumMusicDecoders();
-    printf("Available music decoders: %d\n", numDecoders);
+    LOG_DEBUG("Available music decoders: %d", numDecoders);
     for (int i = 0; i < numDecoders; i++)
     {
-        printf("  - %s\n", Mix_GetMusicDecoder(i));
+        LOG_TRACE("  - %s", Mix_GetMusicDecoder(i));
     }
-    printf("=================================\n\n");
     
     return true;
 }
@@ -85,32 +84,29 @@ bool AudioManager::preloadMusic(const char* filename)
     // Check if already loaded
     if (loadedMusic.find(filenameStr) != loadedMusic.end())
     {
-        printf("Music already loaded: %s\n", filename);
-        return true; // Already loaded
+        LOG_TRACE("Music already loaded: %s", filename);
+        return true;
     }
     
     // Check if file exists
     if (!fileExists(filename))
     {
-        printf("ERROR: Music file not found: %s\n", filename);
-        printf("       Please check that the file exists in the correct location\n");
+        LOG_ERROR("Music file not found: %s", filename);
         return false;
     }
     
-    printf("Attempting to load music: %s\n", filename);
+    LOG_DEBUG("Loading music: %s", filename);
     
     Mix_Music* music = Mix_LoadMUS(filename);
     if (!music)
     {
-        printf("ERROR: Failed to load music %s\n", filename);
-        printf("       SDL_mixer error: %s\n", Mix_GetError());
-        printf("       Make sure the file is a valid OGG Vorbis or MP3 file\n");
-        printf("       Try re-converting the file with FFmpeg or Audacity\n");
+        LOG_ERROR("Failed to load music %s: %s", filename, Mix_GetError());
+        LOG_WARNING("Make sure the file is a valid OGG Vorbis or MP3 file");
         return false;
     }
     
     loadedMusic[filenameStr] = music;
-    printf("Successfully preloaded music: %s\n", filename);
+    LOG_SUCCESS("Preloaded music: %s", filename);
     
     return true;
 }
@@ -132,29 +128,26 @@ bool AudioManager::openMusic(const char* filename)
     auto it = loadedMusic.find(filenameStr);
     if (it != loadedMusic.end())
     {
-        // Track already loaded, just switch to it
         currentMusic = it->second;
         currentTrack = filename;
-        printf("Switched to preloaded music: %s\n", filename);
+        LOG_TRACE("Switched to preloaded music: %s", filename);
         return true;
     }
     
     // Load new track
-    printf("Loading music on-demand: %s\n", filename);
+    LOG_DEBUG("Loading music on-demand: %s", filename);
     
     Mix_Music* music = Mix_LoadMUS(filename);
     if (!music)
     {
-        printf("ERROR: Failed to load music %s\n", filename);
-        printf("       SDL_mixer error: %s\n", Mix_GetError());
-        printf("       Make sure the file exists and is a valid OGG/MP3 file\n");
+        LOG_ERROR("Failed to load music %s: %s", filename, Mix_GetError());
         return false;
     }
     
     loadedMusic[filenameStr] = music;
     currentMusic = music;
     currentTrack = filename;
-    printf("Successfully loaded music: %s\n", filename);
+    LOG_SUCCESS("Loaded music: %s", filename);
     
     return true;
 }
@@ -164,10 +157,9 @@ bool AudioManager::play()
     if (!isInitialized || !currentMusic)
         return false;
     
-    // Play music with infinite loop (-1)
     if (Mix_PlayMusic(currentMusic, -1) < 0)
     {
-        printf("Failed to play music: %s\n", Mix_GetError());
+        LOG_ERROR("Failed to play music: %s", Mix_GetError());
         return false;
     }
     
@@ -194,7 +186,6 @@ bool AudioManager::resume()
     }
     else if (currentMusic)
     {
-        // If not paused, start playing
         return play();
     }
     
@@ -222,18 +213,15 @@ void AudioManager::closeTrack(const char* filename)
 
 void AudioManager::closeAll()
 {
-    // Stop all audio
     Mix_HaltMusic();
-    Mix_HaltChannel(-1); // Stop all sound effect channels
+    Mix_HaltChannel(-1);
     
-    // Free all music
     for (auto& pair : loadedMusic)
     {
         Mix_FreeMusic(pair.second);
     }
     loadedMusic.clear();
     
-    // Free all sounds
     for (auto& pair : loadedSounds)
     {
         Mix_FreeChunk(pair.second);
@@ -251,7 +239,6 @@ bool AudioManager::loadSound(const char* filename)
     
     std::string key(filename);
     
-    // Check if already loaded
     if (loadedSounds.find(key) != loadedSounds.end())
     {
         return true;
@@ -260,12 +247,12 @@ bool AudioManager::loadSound(const char* filename)
     Mix_Chunk* sound = Mix_LoadWAV(filename);
     if (!sound)
     {
-        printf("Failed to load sound %s: %s\n", filename, Mix_GetError());
+        LOG_ERROR("Failed to load sound %s: %s", filename, Mix_GetError());
         return false;
     }
     
     loadedSounds[key] = sound;
-    printf("Loaded sound: %s\n", filename);
+    LOG_DEBUG("Loaded sound: %s", filename);
     
     return true;
 }
@@ -278,7 +265,6 @@ bool AudioManager::playSound(const char* filename)
     std::string key(filename);
     auto it = loadedSounds.find(key);
     
-    // Load if not already loaded
     if (it == loadedSounds.end())
     {
         if (!loadSound(filename))
@@ -286,10 +272,9 @@ bool AudioManager::playSound(const char* filename)
         it = loadedSounds.find(key);
     }
     
-    // Play on any available channel, 0 loops (play once)
     if (Mix_PlayChannel(-1, it->second, 0) < 0)
     {
-        printf("Failed to play sound %s: %s\n", filename, Mix_GetError());
+        LOG_ERROR("Failed to play sound %s: %s", filename, Mix_GetError());
         return false;
     }
     
@@ -300,7 +285,7 @@ void AudioManager::stopAllSounds()
 {
     if (isInitialized)
     {
-        Mix_HaltChannel(-1); // Stop all channels
+        Mix_HaltChannel(-1);
     }
 }
 

@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include "minput.h"
+#include "appconsole.h"
 
 MInput::MInput()
 {
@@ -19,6 +20,12 @@ bool MInput::init()
 
 bool MInput::key(SDL_Scancode k)
 {
+    // Block all game input when AppConsole is visible
+    if (AppConsole::instance().isVisible())
+    {
+        return false;
+    }
+    
     const Uint8* keyState = SDL_GetKeyboardState(nullptr);
     return keyState[k] != 0;
 }

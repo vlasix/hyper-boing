@@ -2,6 +2,7 @@
 #include <cstring>
 #include "pang.h"
 #include "appdata.h"
+#include "appconsole.h"
 #include <SDL.h>
 #include <SDL_render.h>
 #include <SDL_image.h>
@@ -786,9 +787,8 @@ int Scene::drawAll()
 
     if (pStageClear) pStageClear->drawAll();
     
-    drawDebugOverlay();
-    
-    appGraph.flip();
+    // Finalize render (debug overlay, console, flip)
+    finalizeRender();
 
     static int tck = 0, lasttck = 0, cont = 0;
     tck = SDL_GetTicks();

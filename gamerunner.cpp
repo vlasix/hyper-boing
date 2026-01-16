@@ -2,7 +2,8 @@
 #include "pang.h"
 #include "menu.h"
 #include "configscreen.h"
-#include <cstdio>
+#include "logger.h"
+#include "appconsole.h"
 
 GameRunner::GameRunner()
     : appData(AppData::instance()), isInitialized(false)
@@ -19,45 +20,61 @@ GameRunner::~GameRunner()
 
 bool GameRunner::initialize()
 {
-    printf("Initializing game...\n");
+    LOG_INFO("Initializing game...");
     
     // Load configuration
     appData.config.load();
+    LOG_DEBUG("Configuration loaded");
     
     // Initialize input subsystem
     if (!appData.input.init())
     {
-        printf("Error: Failed to initialize input subsystem\n");
+        LOG_ERROR("Failed to initialize input subsystem");
         return false;
     }
+    LOG_SUCCESS("Input subsystem initialized");
     
     // Initialize graphics subsystem
     if (!appData.graph.init("Hyper Boing", appData.renderMode))
     {
-        printf("Error: Failed to initialize graphics subsystem\n");
+        LOG_ERROR("Failed to initialize graphics subsystem");
         return false;
     }
+    LOG_SUCCESS("Graphics subsystem initialized");
     
     // Initialize audio subsystem (SDL_mixer)
     if (!AudioManager::instance().init())
     {
-        printf("Error: Failed to initialize audio subsystem\n");
+        LOG_ERROR("Failed to initialize audio subsystem");
         return false;
+    }
+    LOG_SUCCESS("Audio subsystem initialized");
+    
+    // Initialize in-game console
+    if (!AppConsole::instance().init(&appData.graph))
+    {
+        LOG_WARNING("Failed to initialize AppConsole (non-critical)");
+    }
+    else
+    {
+        LOG_SUCCESS("AppConsole initialized");
     }
     
     // Initialize game data (player sprites, etc.)
     appData.init();
+    LOG_DEBUG("Game data initialized");
     
     // Preload menu music to avoid delays when returning from other screens
-    printf("Preloading menu music...\n");
+    LOG_INFO("Preloading menu music...");
     appData.preloadMenuMusic();
     
     // Create and initialize first screen (Menu)
     appData.currentScreen = new Menu();
     appData.currentScreen->init();
+    LOG_DEBUG("Menu screen created");
     
     isInitialized = true;
-    printf("Initialization complete!\n");
+    LOG_SUCCESS("Initialization complete!");
     
     return true;
 }
@@ -68,46 +85,57 @@ void GameRunner::processEvents()
     
     while (SDL_PollEvent(&e))
     {
+        // Let AppConsole handle events first (if visible, it consumes input)
+        if (AppConsole::instance().handleEvent(e))
+        {
+            continue; // Console consumed the event, don't process game input
+        }
+        
         // Handle window close event
         if (e.type == SDL_QUIT)
         {
             appData.quit = true;
         }
         
-        // Handle keyboard events
-        if (e.type == SDL_KEYDOWN)
+        // Only process game events if console is NOT visible
+        if (!AppConsole::instance().isVisible())
         {
-            switch (e.key.keysym.sym)
+            // Handle keyboard events
+            if (e.type == SDL_KEYDOWN)
             {
-                case SDLK_ESCAPE:
-                    // ESC key - return to menu if not already there
-                    if (!appData.isMenu())
-                    {
-                        appData.goBack = true;
-                    }
-                    break;
-                    
-                case SDLK_p:
-                    // P key - toggle pause
-                    if (appData.currentScreen)
-                    {
-                        appData.currentScreen->setPause(!appData.currentScreen->isPaused());
-                    }
-                    break;
-                    
-                case SDLK_c:
-                    // C key - open config screen
-                    appData.nextScreen = new ConfigScreen();
-                    if (appData.nextScreen)
-                    {
-                        handleStateTransition();
-                    }
-                    break;
-                    
-                case SDLK_TAB:
-                    // TAB key - toggle debug mode
-                    appData.debugMode = !appData.debugMode;
-                    break;
+                switch (e.key.keysym.sym)
+                {
+                    case SDLK_ESCAPE:
+                        // ESC key - return to menu if not already there
+                        if (!appData.isMenu())
+                        {
+                            appData.goBack = true;
+                        }
+                        break;
+                        
+                    case SDLK_p:
+                        // P key - toggle pause
+                        if (appData.currentScreen)
+                        {
+                            appData.currentScreen->setPause(!appData.currentScreen->isPaused());
+                        }
+                        break;
+                        
+                    case SDLK_c:
+                        // C key - open config screen
+                        appData.nextScreen = new ConfigScreen();
+                        if (appData.nextScreen)
+                        {
+                            handleStateTransition();
+                        }
+                        break;
+                        
+                    case SDLK_TAB:
+                        // TAB key - toggle debug mode
+                        appData.debugMode = !appData.debugMode;
+                        LOG_DEBUG("Debug mode: %s", appData.debugMode ? "ON" : "OFF");
+                        break;
+                }
             }
         }
     }
@@ -126,6 +154,7 @@ void GameRunner::update()
     }
     
     // Execute current screen logic (update + render)
+    // NOTE: AppConsole is now rendered inside each screen's drawAll() before flip()
     appData.nextScreen = static_cast<GameState*>(appData.currentScreen->doTick());
     
     // Check if state transition is needed
@@ -139,6 +168,8 @@ void GameRunner::handleStateTransition()
 {
     if (!appData.nextScreen || !appData.currentScreen)
         return;
+    
+    LOG_DEBUG("State transition: switching screens");
     
     // Cleanup old screen
     appData.currentScreen->release();
@@ -155,20 +186,27 @@ void GameRunner::handleStateTransition()
 
 void GameRunner::shutdown()
 {
-    printf("Shutting down...\n");
+    LOG_INFO("Shutting down...");
     
     // Save configuration
     appData.config.save();
+    LOG_DEBUG("Configuration saved");
+    
+    // Release AppConsole
+    AppConsole::destroy();
+    LOG_DEBUG("AppConsole released");
     
     // Release graphics subsystem
     appData.graph.release();
     
     // Destroy singletons
     AudioManager::destroy();
+    LOG_DEBUG("AudioManager released");
+    
     AppData::destroy();
     
     isInitialized = false;
-    printf("Shutdown complete\n");
+    LOG_SUCCESS("Shutdown complete");
 }
 
 int GameRunner::run()
@@ -176,9 +214,13 @@ int GameRunner::run()
     // Initialize all subsystems
     if (!initialize())
     {
-        printf("Failed to initialize game\n");
+        LOG_ERROR("Failed to initialize game");
         return 1;
     }
+    
+    LOG_INFO("Entering main game loop");
+    LOG_INFO("Press F9 or ` (backtick) to toggle in-game console");
+    LOG_INFO("Press TAB to toggle debug overlay");
     
     // Main game loop
     while (!appData.quit)

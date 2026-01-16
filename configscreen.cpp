@@ -1,5 +1,6 @@
 #include "pang.h"
 #include "appdata.h"
+#include "appconsole.h"
 #include "configscreen.h"
 #include "configdata.h"
 #include <SDL.h>
@@ -147,8 +148,10 @@ int ConfigScreen::drawAll()
 {
     GameState::drawScrollingBackground();
     drawUI();
-    drawDebugOverlay();
-    appGraph.flip();
+    
+    // Finalize render (debug overlay, console, flip)
+    finalizeRender();
+    
     return 1;
 }
 

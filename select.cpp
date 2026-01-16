@@ -1,5 +1,6 @@
 #include "pang.h"
 #include "appdata.h"
+#include "appconsole.h"
 #include <SDL.h>
 
 int SelectSync::initBitmaps()
@@ -78,7 +79,10 @@ int SelectSync::drawAll()
 {
     GameState::drawScrollingBackground();
     drawSelect();
-    appGraph.flip();
+    
+    // Finalize render (debug overlay, console, flip)
+    finalizeRender();
+    
     return 1;
 }
 
