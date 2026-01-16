@@ -33,6 +33,13 @@ protected:
     bool pause;
     short int difTime1, difTime2;
     long time1, time2;
+    
+    // Frame timing variables (previously static in doTick)
+    short frameStatus;
+    short frameCount;
+    long frameTick;
+    long lastFrameTick;
+    
     // BMFont for the menu
     BMFontLoader fontLoader;
     BMFontRenderer fontRenderer;

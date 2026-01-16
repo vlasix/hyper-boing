@@ -25,7 +25,8 @@ int Menu::initBitmaps()
 }
 
 Menu::Menu()
-    : xPos(0), yPos(0), selectedOption(0), visible(false), blinkCounter(0)
+    : xPos(0), yPos(0), selectedOption(0), visible(false), blinkCounter(0),
+      upPressed(false), downPressed(false), enterPressed(false)
 {
 }
 
@@ -131,10 +132,6 @@ void Menu::drawDebugOverlay()
 
 void* Menu::moveAll()
 {
-    static bool upPressed = false;
-    static bool downPressed = false;
-    static bool enterPressed = false;
-
     if (blinkCounter > 0) blinkCounter--;
     else blinkCounter = 30;
 

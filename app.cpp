@@ -9,7 +9,8 @@
 
 GameState::GameState()
     : gameSpeed(0), fps(0), fpsv(0), active(true), pause(false), 
-      difTime1(0), difTime2(0), time1(0), time2(0)
+      difTime1(0), difTime2(0), time1(0), time2(0),
+      frameStatus(0), frameCount(0), frameTick(0), lastFrameTick(0)
 {		
 }
 
@@ -24,6 +25,12 @@ int GameState::init()
     time2 = SDL_GetTicks();
     fps = 0;
     fpsv = 0;
+    
+    // Initialize frame timing
+    frameStatus = 0;
+    frameCount = 0;
+    frameTick = 0;
+    lastFrameTick = 0;
     
     return 1;
 }
@@ -180,10 +187,6 @@ void GameState::releaseSharedBackground()
  */
 void* GameState::doTick()
 {
-    static short framestatus = 0;	
-    static short cont = 0;
-    static long tick, lasttick;
-
     AppData& appData = AppData::instance();
     
     if (appData.goBack)
@@ -193,22 +196,22 @@ void* GameState::doTick()
         return (GameState*) new Menu;
     }
 
-    if (framestatus == 0)
+    if (frameStatus == 0)
     {
         time1 = SDL_GetTicks();
         difTime2 = time1 - time2;
         if (difTime2 < gameSpeed) return nullptr;
         time2 = time1;
         difTime1 += difTime2;
-        framestatus = 1;
+        frameStatus = 1;
         return nullptr;
     }
 
-    if (framestatus == 1)
+    if (frameStatus == 1)
     {
         if (difTime1 < gameSpeed)
         {
-            framestatus = 2;
+            frameStatus = 2;
             return nullptr;
         }		
         void* newscreen = (GameState*) moveAll();
@@ -216,19 +219,19 @@ void* GameState::doTick()
         return newscreen;
     }
     
-    if (framestatus == 2)
+    if (frameStatus == 2)
     {
         drawAll();
-        framestatus = 0;
-        tick = SDL_GetTicks();
-        if (tick - lasttick > 1000)
+        frameStatus = 0;
+        frameTick = SDL_GetTicks();
+        if (frameTick - lastFrameTick > 1000)
         {
-            fps = cont;
-            cont = 0;
-            lasttick = tick;
+            fps = frameCount;
+            frameCount = 0;
+            lastFrameTick = frameTick;
         }
         else
-            cont++;
+            frameCount++;
     }
 
     return nullptr;

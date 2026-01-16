@@ -12,10 +12,12 @@
 #endif
 
 Scene::Scene(Stage* stg, StageClear* pstgclr)
+    : levelClear(false), pStageClear(pstgclr), gameOver(false), gameOverCount(-2),
+      stage(stg), change(0), dSecond(0), timeRemaining(0), timeLine(0),
+      moveTick(0), moveLastTick(0), moveCount(0),
+      drawTick(0), drawLastTick(0), drawCount(0)
 {
     gameinf.isMenu() = false;
-    stage = stg;
-    pStageClear = pstgclr;
     if (pStageClear) pStageClear->scene = this;
 }
 
@@ -391,16 +393,15 @@ void* Scene::moveAll()
     Floor* pfl;
     int i, res;
 
-    static int tck = 0, lasttck = 0, cont = 0;
-    tck = SDL_GetTicks();
-    if (tck - lasttck > 1000)
+    moveTick = SDL_GetTicks();
+    if (moveTick - moveLastTick > 1000)
     {
-        fpsv = cont;
-        cont = 0;
-        lasttck = tck;
+        fpsv = moveCount;
+        moveCount = 0;
+        moveLastTick = moveTick;
     }
     else
-        cont++;
+        moveCount++;
 
     if (goback)
     {
@@ -790,16 +791,15 @@ int Scene::drawAll()
     // Finalize render (debug overlay, console, flip)
     finalizeRender();
 
-    static int tck = 0, lasttck = 0, cont = 0;
-    tck = SDL_GetTicks();
-    if (tck - lasttck > 1000)
+    drawTick = SDL_GetTicks();
+    if (drawTick - drawLastTick > 1000)
     {
-        fps = cont;
-        cont = 0;
-        lasttck = tck;
+        fps = drawCount;
+        drawCount = 0;
+        drawLastTick = drawTick;
     }
     else
-        cont++;
+        drawCount++;
 
     return 1;
 }

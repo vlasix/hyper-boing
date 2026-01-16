@@ -8,7 +8,8 @@
 #include <cstring>
 
 ConfigScreen::ConfigScreen()
-    : state(ConfigState::Normal), selectedOption(0), waitingForKey(-1), tempRenderMode(0)
+    : state(ConfigState::Normal), selectedOption(0), waitingForKey(-1), tempRenderMode(0),
+      upPressed(false), downPressed(false), leftPressed(false), rightPressed(false)
 {
     std::memset(tempKeys, 0, sizeof(tempKeys));
 }
@@ -68,11 +69,6 @@ void* ConfigScreen::moveAll()
     }
     else
     {
-        static bool upPressed = false;
-        static bool downPressed = false;
-        static bool leftPressed = false;
-        static bool rightPressed = false;
-        
         if (appInput.key(SDL_SCANCODE_UP))
         {
             if (!upPressed)

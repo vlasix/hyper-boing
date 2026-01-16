@@ -65,6 +65,14 @@ private:
     int dSecond; // deciseconds counter
     int timeRemaining;
     int timeLine;
+    
+    // FPS timing variables (previously static in moveAll and drawAll)
+    int moveTick;
+    int moveLastTick;
+    int moveCount;
+    int drawTick;
+    int drawLastTick;
+    int drawCount;
 
 public:
     SceneBitmaps bmp;

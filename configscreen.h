@@ -32,6 +32,12 @@ private:
     // Modo de renderizado temporal
     int tempRenderMode; // RENDERMODE_NORMAL o RENDERMODE_EXCLUSIVE
     Sprite fontBmp; // BMFont texture
+    
+    // Input state tracking (previously static in moveAll)
+    bool upPressed;
+    bool downPressed;
+    bool leftPressed;
+    bool rightPressed;
 public:
     ConfigScreen();
     virtual ~ConfigScreen() {}

@@ -30,6 +30,11 @@ private:
     int selectedOption; // 0=PLAY, 1=CONFIGURATION, 2=EXIT
     bool visible; // blinking of the selected option
     int blinkCounter;
+    
+    // Input state tracking (previously static in moveAll)
+    bool upPressed;
+    bool downPressed;
+    bool enterPressed;
 
 public:
     Menu();
