@@ -152,6 +152,9 @@ void AppConsole::registerBuiltinCommands()
     
     registerCommand("level", "Set log level (trace/debug/info/warning/error)", 
         [this](const std::string& args) { cmdLevel(args); });
+    
+    registerCommand("next", "Skip to next level (only in gameplay)", 
+        [this](const std::string& args) { cmdNext(args); });
 }
 
 void AppConsole::cmdHelp(const std::string& args)
@@ -207,6 +210,31 @@ void AppConsole::cmdLevel(const std::string& args)
     }
     
     LOG_SUCCESS("Log level set to: %s", levelStr.c_str());
+}
+
+void AppConsole::cmdNext(const std::string& args)
+{
+    AppData& appData = AppData::instance();
+    
+    // Check if we're in a Scene (gameplay screen)
+    Scene* currentScene = dynamic_cast<Scene*>(appData.currentScreen);
+    
+    if (!currentScene)
+    {
+        LOG_WARNING("/next can only be used during gameplay (Scene)");
+        return;
+    }
+    
+    // Check if there's a next stage
+    if (appData.currentStage >= appData.numStages)
+    {
+        LOG_INFO("Already on the last stage");
+        return;
+    }
+    
+    // Trigger level clear to advance to next stage
+    LOG_SUCCESS("Skipping to next level...");
+    currentScene->win();
 }
 
 void AppConsole::registerCommand(const std::string& name, const std::string& desc, CommandHandler handler)

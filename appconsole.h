@@ -105,6 +105,7 @@ private:
     void cmdEcho(const std::string& args);
     void cmdClear(const std::string& args);
     void cmdLevel(const std::string& args);
+    void cmdNext(const std::string& args);
 
 public:
     // Singleton accessor
