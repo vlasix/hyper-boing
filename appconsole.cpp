@@ -47,12 +47,12 @@ bool AppConsole::init(Graph* gr)
     
     // Load our own monospace font
     fontLoader = new BMFontLoader();
-    if (!fontLoader->load("graph\\font\\monospaced_10.fnt"))
+    if (!fontLoader->load("graph/font/monospaced_10.fnt"))
     {
         LOG_WARNING("AppConsole: Could not load monospaced_10.fnt, trying default font");
         
         // Try fallback font
-        if (!fontLoader->load("graph\\font\\thickfont_grad_64.fnt"))
+        if (!fontLoader->load("graph/font/thickfont_grad_64.fnt"))
         {
             LOG_ERROR("AppConsole: Failed to load any font");
             delete fontLoader;
@@ -63,7 +63,7 @@ bool AppConsole::init(Graph* gr)
     
     // Load font texture
     fontTexture = new Sprite();
-    std::string fontTexturePath = "graph\\font\\" + fontLoader->getFontTexture();
+    std::string fontTexturePath = "graph/font/" + fontLoader->getFontTexture();
     fontTexture->init(graph, fontTexturePath.c_str(), 0, 0);
     
     // Create font renderer

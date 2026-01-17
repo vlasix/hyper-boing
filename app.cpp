@@ -88,7 +88,7 @@ void GameState::initSharedBackground()
     if (!appData.backgroundInitialized)
     {
         appData.sharedBackground = new Sprite();
-        appData.sharedBackground->init(&appData.graph, "graph\\titleback.png", 0, 0);
+        appData.sharedBackground->init(&appData.graph, "graph/titleback.png", 0, 0);
         appData.graph.setColorKey(appData.sharedBackground->getBmp(), 0xFF0000);
         appData.scrollX = 0.0f;
         appData.scrollY = (float)appData.sharedBackground->getHeight();

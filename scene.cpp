@@ -43,7 +43,7 @@ int Scene::init()
 
     initBitmaps();
 
-    std::snprintf(cadena, sizeof(cadena), "music\\%s", stage->music);
+    std::snprintf(cadena, sizeof(cadena), "music/%s", stage->music);
     OpenMusic(cadena);
     PlayMusic();
     return 1;
@@ -62,65 +62,65 @@ int Scene::initBitmaps()
     int offs1[10] = { 0, 13, 18, 31, 44, 58, 70, 82, 93, 105 };
     int offs2[10] = { 0, 49, 86, 134, 187, 233, 277, 327, 374, 421 };
 
-    bmp.redball[0].init(&appGraph, "graph\\ball-rd1.png");
-    bmp.redball[1].init(&appGraph, "graph\\ball-rd2.png");
-    bmp.redball[2].init(&appGraph, "graph\\ball-rd3.png");
-    bmp.redball[3].init(&appGraph, "graph\\ball-rd4.png");
+    bmp.redball[0].init(&appGraph, "graph/ball-rd1.png");
+    bmp.redball[1].init(&appGraph, "graph/ball-rd2.png");
+    bmp.redball[2].init(&appGraph, "graph/ball-rd3.png");
+    bmp.redball[3].init(&appGraph, "graph/ball-rd4.png");
     for (i = 0; i < 4; i++)
         appGraph.setColorKey(bmp.redball[i].getBmp(), 0x00FF00);
 
-    bmp.miniplayer[PLAYER1].init(&appGraph, "graph\\miniplayer1.png");
-    bmp.miniplayer[PLAYER2].init(&appGraph, "graph\\miniplayer2.png");
+    bmp.miniplayer[PLAYER1].init(&appGraph, "graph/miniplayer1.png");
+    bmp.miniplayer[PLAYER2].init(&appGraph, "graph/miniplayer2.png");
     appGraph.setColorKey(bmp.miniplayer[PLAYER1].getBmp(), 0x00FF00);
     appGraph.setColorKey(bmp.miniplayer[PLAYER2].getBmp(), 0x00FF00);
 
-    bmp.lives[PLAYER1].init(&appGraph, "graph\\lives1p.png");
-    bmp.lives[PLAYER2].init(&appGraph, "graph\\lives2p.png");
+    bmp.lives[PLAYER1].init(&appGraph, "graph/lives1p.png");
+    bmp.lives[PLAYER2].init(&appGraph, "graph/lives2p.png");
     appGraph.setColorKey(bmp.lives[PLAYER1].getBmp(), 0x00FF00);
     appGraph.setColorKey(bmp.lives[PLAYER2].getBmp(), 0x00FF00);
 
-    bmp.shoot[0].init(&appGraph, "graph\\weapon1.png");
-    bmp.shoot[1].init(&appGraph, "graph\\weapon2.png");
-    bmp.shoot[2].init(&appGraph, "graph\\weapon3.png");
+    bmp.shoot[0].init(&appGraph, "graph/weapon1.png");
+    bmp.shoot[1].init(&appGraph, "graph/weapon2.png");
+    bmp.shoot[2].init(&appGraph, "graph/weapon3.png");
     for (i = 0; i < 3; i++)
         appGraph.setColorKey(bmp.shoot[i].getBmp(), 0x00FF00);
 
-    bmp.mark[0].init(&appGraph, "graph\\ladrill1.png");
-    bmp.mark[1].init(&appGraph, "graph\\ladrill1u.png");
-    bmp.mark[2].init(&appGraph, "graph\\ladrill1d.png");
-    bmp.mark[3].init(&appGraph, "graph\\ladrill1l.png");
-    bmp.mark[4].init(&appGraph, "graph\\ladrill1r.png");
+    bmp.mark[0].init(&appGraph, "graph/ladrill1.png");
+    bmp.mark[1].init(&appGraph, "graph/ladrill1u.png");
+    bmp.mark[2].init(&appGraph, "graph/ladrill1d.png");
+    bmp.mark[3].init(&appGraph, "graph/ladrill1l.png");
+    bmp.mark[4].init(&appGraph, "graph/ladrill1r.png");
 
     for (i = 0; i < 5; i++)
         appGraph.setColorKey(bmp.mark[i].getBmp(), 0x00FF00);
 
-    bmp.floor[0].init(&appGraph, "graph\\floor1.png");
+    bmp.floor[0].init(&appGraph, "graph/floor1.png");
     appGraph.setColorKey(bmp.floor[0].getBmp(), 0x00FF00);
-    bmp.floor[1].init(&appGraph, "graph\\floor2.png");
+    bmp.floor[1].init(&appGraph, "graph/floor2.png");
     appGraph.setColorKey(bmp.floor[1].getBmp(), 0x00FF00);
 
-    bmp.time.init(&appGraph, "graph\\tiempo.png");
+    bmp.time.init(&appGraph, "graph/tiempo.png");
     appGraph.setColorKey(bmp.time.getBmp(), 0xFF0000);
 
-    bmp.gameover.init(&appGraph, "graph\\gameover.png", 16, 16);
+    bmp.gameover.init(&appGraph, "graph/gameover.png", 16, 16);
     //appGraph.setColorKey(bmp.gameover.getBmp(), 0x00FF00);
 
-    bmp.continu.init(&appGraph, "graph\\continue.png", 16, 16);
+    bmp.continu.init(&appGraph, "graph/continue.png", 16, 16);
     //appGraph.setColorKey(bmp.continu.getBmp(), 0x00FF00);
 
-    std::snprintf(cadena, sizeof(cadena), "graph\\%s", stage->back);
+    std::snprintf(cadena, sizeof(cadena), "graph/%s", stage->back);
     bmp.back.init(&appGraph, cadena, 16, 16);
     appGraph.setColorKey(bmp.back.getBmp(), 0x00FF00);
 
-    bmp.fontnum[0].init(&appGraph, "graph\\fontnum1.png", 0, 0);
+    bmp.fontnum[0].init(&appGraph, "graph/fontnum1.png", 0, 0);
     appGraph.setColorKey(bmp.fontnum[0].getBmp(), 0xFF0000);
     fontNum[0].init(&bmp.fontnum[0]);
     fontNum[0].setValues(offs);
-    bmp.fontnum[1].init(&appGraph, "graph\\fontnum2.png", 0, 0);
+    bmp.fontnum[1].init(&appGraph, "graph/fontnum2.png", 0, 0);
     appGraph.setColorKey(bmp.fontnum[1].getBmp(), 0xFF0000);
     fontNum[1].init(&bmp.fontnum[1]);
     fontNum[1].setValues(offs1);
-    bmp.fontnum[2].init(&appGraph, "graph\\fontnum3.png", 0, 0);
+    bmp.fontnum[2].init(&appGraph, "graph/fontnum3.png", 0, 0);
     appGraph.setColorKey(bmp.fontnum[2].getBmp(), 0x00FF00);
     fontNum[2].init(&bmp.fontnum[2]);
     fontNum[2].setValues(offs2);
@@ -205,7 +205,7 @@ int Scene::objectScore(int id)
 void Scene::win()
 {
     CloseMusic();
-    OpenMusic("music\\win.ogg");
+    OpenMusic("music/win.ogg");
     PlayMusic();
     levelClear = true;
 
@@ -470,7 +470,7 @@ void* Scene::moveAll()
                     gameOver = true;
                     gameOverCount = 10;
                     CloseMusic();
-                    OpenMusic("music\\gameover.ogg");
+                    OpenMusic("music/gameover.ogg");
                     PlayMusic();
                 }
             }
@@ -481,7 +481,7 @@ void* Scene::moveAll()
                     gameOver = true;
                     gameOverCount = 10;
                     CloseMusic();
-                    OpenMusic("music\\gameover.ogg");
+                    OpenMusic("music/gameover.ogg");
                     PlayMusic();
                 }
             }

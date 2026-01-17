@@ -9,22 +9,22 @@
 int Menu::initBitmaps()
 {
     // Load three layered title images
-    bmp.title_boing.init(&appGraph, "graph\\title_boing.png", 0, 0);
+    bmp.title_boing.init(&appGraph, "graph/title_boing.png", 0, 0);
     //appGraph.setColorKey(bmp.title_boing.getBmp(), 0x00FF00);
     
-    bmp.title_hyper.init(&appGraph, "graph\\title_hyper.png", 0, 0);
+    bmp.title_hyper.init(&appGraph, "graph/title_hyper.png", 0, 0);
     //appGraph.setColorKey(bmp.title_hyper.getBmp(), 0x00FF00);
     
-    bmp.title_bg.init(&appGraph, "graph\\title_bg.png", 0, 0);
+    bmp.title_bg.init(&appGraph, "graph/title_bg.png", 0, 0);
     //appGraph.setColorKey(bmp.title_bg.getBmp(), 0x00FF00);
     
     // Initialize shared background
     GameState::initSharedBackground();
 
     // Load BMFont for menu
-    if (fontLoader.load("graph\\font\\thickfont_grad_64.fnt"))
+    if (fontLoader.load("graph/font/thickfont_grad_64.fnt"))
     {
-        bmp.menuFont.init(&appGraph, "graph\\font\\thickfont_grad_64.png", 0, 0);
+        bmp.menuFont.init(&appGraph, "graph/font/thickfont_grad_64.png", 0, 0);
         fontRenderer.init(&appGraph, &fontLoader, &bmp.menuFont);
     }
 
@@ -61,7 +61,7 @@ int Menu::init()
     blinkCounter = 30;
 
     CloseMusic();
-    OpenMusic("music\\menu.ogg");
+    OpenMusic("music/menu.ogg");
     PlayMusic();
 
     return 1;
