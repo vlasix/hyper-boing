@@ -8,8 +8,15 @@
 
 int Menu::initBitmaps()
 {
-    bmp.title.init(&appGraph, "graph\\title.png", 0, 0);
-    appGraph.setColorKey(bmp.title.getBmp(), 0x00FF00);
+    // Load three layered title images
+    bmp.title_boing.init(&appGraph, "graph\\title_boing.png", 0, 0);
+    //appGraph.setColorKey(bmp.title_boing.getBmp(), 0x00FF00);
+    
+    bmp.title_hyper.init(&appGraph, "graph\\title_hyper.png", 0, 0);
+    //appGraph.setColorKey(bmp.title_hyper.getBmp(), 0x00FF00);
+    
+    bmp.title_bg.init(&appGraph, "graph\\title_bg.png", 0, 0);
+    //appGraph.setColorKey(bmp.title_bg.getBmp(), 0x00FF00);
     
     // Initialize shared background
     GameState::initSharedBackground();
@@ -26,7 +33,8 @@ int Menu::initBitmaps()
 
 Menu::Menu()
     : xPos(0), yPos(0), selectedOption(0), visible(false), blinkCounter(0),
-      upPressed(false), downPressed(false), enterPressed(false)
+      upPressed(false), downPressed(false), enterPressed(false),
+      boingY(-300), hyperX(-400), bgAlpha(0), animComplete(false)
 {
 }
 
@@ -36,8 +44,16 @@ int Menu::init()
     
     gameinf.isMenu() = true;
     initBitmaps();
+    
+    // Legacy position (kept for compatibility)
     xPos = 180;
     yPos = -300;
+    
+    // Initialize layered title animation
+    boingY = -300;      // Starts above screen
+    hyperX = -400;      // Starts off-screen to the left
+    bgAlpha = 0;        // Starts fully transparent
+    animComplete = false;
 
     selectedOption = 0; // PLAY
     
@@ -53,7 +69,9 @@ int Menu::init()
 
 int Menu::release()
 {
-    bmp.title.release();
+    bmp.title_boing.release();
+    bmp.title_hyper.release();
+    bmp.title_bg.release();
     bmp.menuFont.release();
     fontRenderer.release();
 
@@ -62,12 +80,36 @@ int Menu::release()
     return 1;
 }
 
+void Menu::drawTitleLayers()
+{
+    int centerX = (RES_X - bmp.title_bg.getWidth()) / 2;
+    int targetY = 40;
+    
+    // Layer 1 (back): title_bg - fades in
+    if (bgAlpha > 0)
+    {
+        SDL_SetTextureAlphaMod(bmp.title_bg.getBmp(), (Uint8)bgAlpha);
+        appGraph.drawClipped(&bmp.title_bg, centerX, targetY);
+    }
+
+    // Layer 2 (front): title_boing - drops from top
+    if (boingY > -300)
+    {
+        appGraph.drawClipped(&bmp.title_boing, centerX+30, boingY);
+    }
+
+    // Layer 3 (middle): title_hyper - slides from left
+    if ( hyperX > -400 )
+    {
+        appGraph.drawClipped ( &bmp.title_hyper, hyperX, targetY+30 );
+    }
+
+}
+
 void Menu::drawTitle()
 {
-    int titleX = (RES_X - bmp.title.getWidth()) / 2;
-    int titleY = yPos;
-    
-    appGraph.drawClipped(&bmp.title, titleX, titleY);
+    // Legacy method - now calls drawTitleLayers
+    drawTitleLayers();
 }
 
 void Menu::drawMenu()
@@ -123,7 +165,10 @@ void Menu::drawDebugOverlay()
     char cadena[256];
     int y = 80;
     int lineHeight = 20;
-    std::sprintf(cadena, "Title Y = %d  Selected = %d", yPos, selectedOption);
+    std::sprintf(cadena, "Title Boing Y = %d  Hyper X = %d  BG Alpha = %d", boingY, hyperX, bgAlpha);
+    appData.graph.text(cadena, 20, y);
+    y += lineHeight;
+    std::sprintf(cadena, "AnimComplete = %s  Selected = %d", animComplete ? "YES" : "NO", selectedOption);
     appData.graph.text(cadena, 20, y);
     y += lineHeight;
     std::sprintf(cadena, "Scroll X=%d Y=%d", (int)appData.scrollX, (int)appData.scrollY);
@@ -137,10 +182,45 @@ void* Menu::moveAll()
 
     GameState::updateScrollingBackground();
 
-    if (yPos < 50) yPos += 10;
+    // Animate layered title elements
+    if (!animComplete)
+    {
+        // Phase 1: title_boing drops from top (fast)
+        if (boingY < 120)
+        {
+            boingY += 10;
+            if (boingY >= 120 )
+            {
+                boingY = 120;
+            }
+        }
+        // Phase 2: title_hyper slides from left (after boing settles)
+        else if (hyperX < (RES_X - bmp.title_hyper.getWidth()) / 2)
+        {
+            hyperX += 15;
+            if (hyperX >= (RES_X - bmp.title_hyper.getWidth()) / 2)
+            {
+                hyperX = (RES_X - bmp.title_hyper.getWidth()) / 2;
+            }
+        }
+        // Phase 3: title_bg fades in (after hyper arrives)
+        else if (bgAlpha < 255)
+        {
+            bgAlpha += 5;
+            if (bgAlpha >= 255)
+            {
+                bgAlpha = 255;
+                animComplete = true;
+            }
+        }
+    }
+    
+    // Legacy animation (kept for compatibility)
+    if (yPos < 120) yPos += 10;
     else if (!blinkCounter) visible = !visible;
 
-    if (yPos >= 50)
+    // Enable menu interaction only after animations complete
+    if (animComplete && yPos >= 50)
     {
         if (appInput.key(SDL_SCANCODE_UP) || appInput.key(gameinf.getKeys()[PLAYER1].left))
         {

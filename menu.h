@@ -10,8 +10,10 @@
  */
 struct MenuBitmaps
 {
-    Sprite title;
-    Sprite menuFont; // BMFont texture
+    Sprite title_boing;  // Front layer - drops from top
+    Sprite title_hyper;  // Middle layer - slides from left
+    Sprite title_bg;     // Back layer - fades in
+    Sprite menuFont;     // BMFont texture
 };
 
 /**
@@ -26,7 +28,14 @@ class Menu : public GameState
 {
 private:
     MenuBitmaps bmp;
-    int xPos, yPos; // title position
+    int xPos, yPos; // legacy position variables
+    
+    // Animation state for layered title
+    int boingY;        // title_boing drops from top
+    int hyperX;        // title_hyper slides from left
+    int bgAlpha;       // title_bg fades in (0-255)
+    bool animComplete; // true when all animations finished
+    
     int selectedOption; // 0=PLAY, 1=CONFIGURATION, 2=EXIT
     bool visible; // blinking of the selected option
     int blinkCounter;
@@ -43,6 +52,7 @@ public:
     int init() override;
     int initBitmaps();
     void drawTitle();
+    void drawTitleLayers();
     void drawMenu();
 
     void* moveAll() override;
