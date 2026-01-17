@@ -103,10 +103,10 @@ int Scene::initBitmaps()
     appGraph.setColorKey(bmp.time.getBmp(), 0xFF0000);
 
     bmp.gameover.init(&appGraph, "graph\\gameover.png", 16, 16);
-    appGraph.setColorKey(bmp.gameover.getBmp(), 0x00FF00);
+    //appGraph.setColorKey(bmp.gameover.getBmp(), 0x00FF00);
 
     bmp.continu.init(&appGraph, "graph\\continue.png", 16, 16);
-    appGraph.setColorKey(bmp.continu.getBmp(), 0x00FF00);
+    //appGraph.setColorKey(bmp.continu.getBmp(), 0x00FF00);
 
     std::snprintf(cadena, sizeof(cadena), "graph\\%s", stage->back);
     bmp.back.init(&appGraph, cadena, 16, 16);
@@ -781,7 +781,7 @@ int Scene::drawAll()
         appGraph.draw(&bmp.gameover, 100, 125);
         if (gameOverCount >= 0)
         {
-            appGraph.draw(&bmp.continu, 110, 240);
+            appGraph.draw(&bmp.continu, 130, 200);
             appGraph.draw(&fontNum[FONT_HUGE], gameOverCount, 315, 300);
         }
     }
