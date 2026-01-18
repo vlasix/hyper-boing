@@ -132,25 +132,25 @@ int Scene::initBitmaps()
 void Scene::addBall(int x, int y, int size, int top, int dirX, int dirY, int id)
 {
     Ball* ball = new Ball(this, x, y, size, dirX, dirY, top, id);
-    lsBalls.insert((MListData*)ball);
+    lsBalls.push_back(ball);
 }
 
 void Scene::addItem(int x, int y, int id)
 {
     Item* item = new Item(x, y, id);
-    lsItems.insert((MListData*)item);
+    lsItems.push_back(item);
 }
 
 void Scene::addFloor(int x, int y, int id)
 {
     Floor* floor = new Floor(this, x, y, id);
-    lsFloor.insert((MListData*)floor);
+    lsFloor.push_back(floor);
 }
 
 void Scene::addShoot(Player* pl)
 {
     Shoot* shootInstance = new Shoot(this, pl);
-    lsShoots.insert((MListData*)shootInstance);
+    lsShoots.push_back(shootInstance);
 }
 
 void Scene::shoot(Player* pl)
@@ -180,20 +180,21 @@ int Scene::divideBall(Ball* ball)
         ball1->setDirX(-1);
         ball2->setDirX(1);
 
-        lsBalls.insert((MListData*)ball1);
-        lsBalls.insert((MListData*)ball2);
+        lsBalls.push_back(ball1);
+        lsBalls.push_back(ball2);
 
         res = 0;
     }
     else
     {
-        if (lsBalls.getDimension() == 1 && !stage->itemsleft)
+        if (lsBalls.size() == 1 && !stage->itemsleft)
         {
             win();
         }
     }
 
-    lsBalls.deleteNode(lsBalls.find(ball));
+    lsBalls.remove(ball);
+    delete ball;
 
     return res;
 }
@@ -215,23 +216,19 @@ void Scene::win()
 
 void Scene::checkColisions()
 {
-    MListNode* pt;
-    MListNode* ptball = lsBalls.getFirstNode();
-    MListNode* ptshoot;
     Ball* b;
     Shoot* sh;
     Floor* fl;
     int i;
     SDL_Point col;
 
-    while (ptball)
+    for (auto ptball : lsBalls)
     {
-        b = (Ball*)ptball->data;
+        b = ptball;
 
-        pt = lsShoots.getFirstNode();
-        while (pt)
+        for (auto pt : lsShoots)
         {
-            sh = (Shoot*)pt->data;
+            sh = pt;
             if (!b->hitStatus && !sh->getPlayer()->isDead())
                 if (b->collision(sh))
                 {
@@ -240,17 +237,15 @@ void Scene::checkColisions()
                     sh->getPlayer()->addScore(objectScore(b->diameter));
                     b->kill();
                 }
-            pt = lsShoots.getNextNode(pt);
         }
 
         FloorColision flc[2];
         int cont = 0;
         int moved = 0;
 
-        pt = lsFloor.getFirstNode();
-        while (pt)
+        for (auto pt : lsFloor)
         {
-            fl = (Floor*)pt->data;
+            fl = pt;
             col = b->collision(fl);
 
             if (col.x)
@@ -283,7 +278,6 @@ void Scene::checkColisions()
                     cont++;
                 }
             }
-            pt = lsFloor.getNextNode(pt);
         }
         if (cont == 1)
         {
@@ -309,29 +303,22 @@ void Scene::checkColisions()
                     }
                 }
         }
-
-        ptball = lsBalls.getNextNode(ptball);
     }
 
-    ptshoot = lsShoots.getFirstNode();
-    while (ptshoot)
+    for (auto ptshoot : lsShoots)
     {
-        sh = (Shoot*)ptshoot->data;
+        sh = ptshoot;
 
-        pt = lsFloor.getFirstNode();
-        while (pt)
+        for (auto pt : lsFloor)
         {
-            fl = (Floor*)pt->data;
+            fl = pt;
             if (!sh->isDead())
                 if (sh->collision(fl))
                 {
                     sh->kill();
                     sh->getPlayer()->looseShoot();
                 }
-            pt = lsFloor.getNextNode(pt);
         }
-
-        ptshoot = lsShoots.getNextNode(ptshoot);
     }
 }
 
@@ -388,7 +375,6 @@ void Scene::checkSequence()
 
 void* Scene::moveAll()
 {
-    MListNode* ptprev, * pt = lsBalls.getFirstNode();
     Ball* ptb;
     Shoot* pts;
     Floor* pfl;
@@ -490,31 +476,49 @@ void* Scene::moveAll()
 
     checkColisions();
 
-    while (pt)
+    // Move and mark balls for division (deferred processing)
+    for (auto pt : lsBalls)
     {
-        ptb = (Ball*)pt->data;
+        ptb = pt;
         ptb->move();
-        pt = lsBalls.getNextNode(pt);
-        if (ptb->isHit()) divideBall(ptb);
+        // Mark is done via isHit(), actual division happens in cleanup phase
     }
 
-    pt = lsShoots.getFirstNode();
-    while (pt)
+    // Cleanup phase: process hit balls and remove dead objects
+    for (auto it = lsBalls.begin(); it != lsBalls.end(); )
     {
-        pts = (Shoot*)pt->data;
+        ptb = *it;
+        if (ptb->isHit())
+        {
+            divideBall(ptb);
+            it = lsBalls.begin(); // Restart after modification
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    // Cleanup shoots using the same pattern for consistency
+    for (auto it = lsShoots.begin(); it != lsShoots.end(); )
+    {
+        pts = *it;
         pts->move();
-        ptprev = pt;
-        pt = lsShoots.getNextNode(pt);
         if (pts->isDead())
-            lsShoots.deleteNode(ptprev);
+        {
+            delete pts;
+            it = lsShoots.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
     }
 
-    pt = lsFloor.getFirstNode();
-    while (pt)
+    for (auto pt : lsFloor)
     {
-        pfl = (Floor*)pt->data;
+        pfl = pt;
         pfl->update();
-        pt = lsFloor.getNextNode(pt);
     }
 
     if (dSecond < 60) dSecond++;
@@ -570,9 +574,17 @@ void* Scene::moveAll()
 
 int Scene::release()
 {
-    lsBalls.release();
-    lsShoots.release();
-    lsFloor.release();
+    for (auto ball : lsBalls)
+        delete ball;
+    lsBalls.clear();
+    
+    for (auto shoot : lsShoots)
+        delete shoot;
+    lsShoots.clear();
+    
+    for (auto floor : lsFloor)
+        delete floor;
+    lsFloor.clear();
 
     bmp.back.release();
     bmp.floor[0].release();
@@ -695,10 +707,9 @@ void Scene::drawDebugOverlay()
         y += lineHeight;
     }
     
-    MListNode* pt = lsBalls.getFirstNode();
-    if (pt)
+    if (!lsBalls.empty())
     {
-        Ball* ptb = (Ball*)pt->data;
+        Ball* ptb = lsBalls.front();
         std::sprintf(cadena, "Ball: y=%.1f size=%d diameter=%d", 
                 ptb->getY(), ptb->getSize(), ptb->getDiameter());
         appData.graph.text(cadena, 20, y);
@@ -706,9 +717,9 @@ void Scene::drawDebugOverlay()
     }
     
     std::sprintf(cadena, "Objects: Balls=%d Shoots=%d Floors=%d", 
-            lsBalls.getDimension(),
-            lsShoots.getDimension(),
-            lsFloor.getDimension());
+            (int)lsBalls.size(),
+            (int)lsShoots.size(),
+            (int)lsFloor.size());
     appData.graph.text(cadena, 20, y);
     y += lineHeight;
     
@@ -725,27 +736,22 @@ void Scene::drawDebugOverlay()
 
 int Scene::drawAll()
 {
-    MListNode* pt = lsBalls.getFirstNode();
     Ball* ptb;
     Shoot* pts;
     Floor* pfl;
 
     drawBackground();
 
-    pt = lsFloor.getFirstNode();
-    while (pt)
+    for (auto pt : lsFloor)
     {
-        pfl = (Floor*)pt->data;
+        pfl = pt;
         draw(pfl);
-        pt = lsFloor.getNextNode(pt);
     }
 
-    pt = lsShoots.getFirstNode();
-    while (pt)
+    for (auto pt : lsShoots)
     {
-        pts = (Shoot*)pt->data;
+        pts = pt;
         draw(pts);
-        pt = lsShoots.getNextNode(pt);
     }
 
     drawMark();
@@ -760,12 +766,10 @@ int Scene::drawAll()
         if (gameinf.getPlayers()[PLAYER2]->isVisible() && gameinf.getPlayers()[PLAYER2]->isPlaying())
             draw(gameinf.getPlayers()[PLAYER2]);
 
-    pt = lsBalls.getFirstNode();
-    while (pt)
+    for (auto pt : lsBalls)
     {
-        ptb = (Ball*)pt->data;
+        ptb = pt;
         draw(ptb);
-        pt = lsBalls.getNextNode(pt);
     }
 
     if (gameOver)

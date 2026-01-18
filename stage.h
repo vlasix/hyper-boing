@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mlist.h"
+#include <list>
 
 /**
  * StageExtra class
@@ -70,7 +70,7 @@ public:
     int xpos[2]; // initial positions for players 1 and 2
                    
 private:
-    MList sequence;
+    std::list<StageObject*> sequence;
 
 public:
     Stage() : id(0), timelimit(0), itemsleft(0) {

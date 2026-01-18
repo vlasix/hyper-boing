@@ -5,7 +5,11 @@
 
 void Stage::reset()
 {
-    sequence.release();
+    for (auto obj : sequence)
+    {
+        delete obj;
+    }
+    sequence.clear();
     itemsleft = 0;
     id = 0;
 }
@@ -29,7 +33,7 @@ void Stage::add(int idObject, int start)
     obj->x = std::rand() % 600 + 32;
     obj->y = 22;
 
-    sequence.insert((MListData*)obj);
+    sequence.push_back(obj);
 
     if (obj->id == OBJ_BALL)
         itemsleft++;
@@ -41,7 +45,7 @@ void Stage::addX(int idObject, int start, StageExtra extra)
 
     obj->x = std::rand() % 600 + 32;
     obj->y = 22;
-    sequence.insert((MListData*)obj);
+    sequence.push_back(obj);
 
     if (obj->id == OBJ_BALL)
         itemsleft++;
@@ -53,7 +57,7 @@ void Stage::add(int idObject, int x, int y, int start)
     obj->x = x;
     obj->y = y;
 
-    sequence.insert((MListData*)obj);
+    sequence.push_back(obj);
 
     if (obj->id == OBJ_BALL)
         itemsleft++;
@@ -65,7 +69,7 @@ void Stage::addX(int idObject, int x, int y, int start, StageExtra extra)
     obj->x = x;
     obj->y = y;
 
-    sequence.insert((MListData*)obj);
+    sequence.push_back(obj);
 
     if (obj->id == OBJ_BALL)
         itemsleft++;
@@ -73,17 +77,16 @@ void Stage::addX(int idObject, int x, int y, int start, StageExtra extra)
 
 StageObject Stage::pop(int time)
 {
-    MListNode* pt = sequence.getFirstNode();	
-    StageObject* obj;
     StageObject res(OBJ_NULL);
 
-    if (pt)
+    if (!sequence.empty())
     {
-        obj = (StageObject*)pt->data;
+        StageObject* obj = sequence.front();
         if (time >= obj->start)
         {
             res = *obj;
-            sequence.deleteNode(pt);
+            delete obj;
+            sequence.pop_front();
             if (res.id == OBJ_BALL) itemsleft--;			
             return res;
         }

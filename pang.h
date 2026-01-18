@@ -13,7 +13,6 @@
 #include "select.h"
 #include "stageclear.h"
 #include "configscreen.h"
-#include "mlist.h"
 #include "ball.h"
 #include "player.h"
 #include "item.h"

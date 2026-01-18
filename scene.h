@@ -2,8 +2,8 @@
 #define _SCENE_H_
 
 #include <memory>
+#include <list>
 #include "bmfont.h"
-#include "mlist.h"
 #include "player.h"
 #include "ball.h"
 #include "shoot.h"
@@ -79,10 +79,10 @@ public:
     SceneBitmaps bmp;
     BmNumFont fontNum[3];
 
-    MList lsBalls;
-    MList lsItems;
-    MList lsFloor;
-    MList lsShoots;
+    std::list<Ball*> lsBalls;
+    std::list<Item*> lsItems;
+    std::list<Floor*> lsFloor;
+    std::list<Shoot*> lsShoots;
 
     Scene(Stage* stg, std::unique_ptr<StageClear> pstgclr = nullptr);
     virtual ~Scene() {}
